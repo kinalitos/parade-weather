@@ -18,29 +18,33 @@ export function WeatherDataDisplay({ data }: WeatherDataDisplayProps) {
       icon: Thermometer,
       label: "Very Hot",
       value: data.probabilities.very_hot,
-      color: "text-chart-4",
-      bgColor: "bg-chart-4/10",
+      color: "text-red-500",
+      bgColor: "bg-red-500/10",
+      barColor: "bg-red-500",
     },
     {
       icon: Snowflake,
       label: "Very Cold",
       value: data.probabilities.very_cold,
-      color: "text-chart-2",
-      bgColor: "bg-chart-2/10",
+      color: "text-blue-500",
+      bgColor: "bg-blue-500/10",
+      barColor: "bg-blue-500",
     },
     {
       icon: CloudRain,
       label: "Very Wet",
       value: data.probabilities.very_wet,
-      color: "text-chart-3",
-      bgColor: "bg-chart-3/10",
+      color: "text-cyan-500",
+      bgColor: "bg-cyan-500/10",
+      barColor: "bg-cyan-500",
     },
     {
       icon: Wind,
       label: "Very Windy",
       value: data.probabilities.very_windy,
-      color: "text-chart-1",
-      bgColor: "bg-chart-1/10",
+      color: "text-gray-500",
+      bgColor: "bg-gray-500/10",
+      barColor: "bg-gray-500",
     },
     ...(isRegion
       ? [
@@ -48,8 +52,9 @@ export function WeatherDataDisplay({ data }: WeatherDataDisplayProps) {
             icon: Frown,
             label: "Very Uncomfortable",
             value: (data as RegionWeatherData).probabilities.very_uncomfortable,
-            color: "text-chart-5",
-            bgColor: "bg-chart-5/10",
+            color: "text-orange-500",
+            bgColor: "bg-orange-500/10",
+            barColor: "bg-orange-500",
           },
         ]
       : []),
@@ -147,7 +152,7 @@ export function WeatherDataDisplay({ data }: WeatherDataDisplayProps) {
                   </div>
                   <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
                     <div
-                      className={`h-full ${condition.color.replace("text-", "bg-")} transition-all duration-500`}
+                      className={`h-full ${condition.barColor} transition-all duration-500`}
                       style={{ width: `${condition.value * 100}%` }}
                     />
                   </div>
