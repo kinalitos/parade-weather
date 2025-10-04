@@ -20,5 +20,7 @@ export async function fetchWeatherData(
     throw new Error("Failed to fetch weather data");
   }
 
-  return response.json();
+  const resp = response.json();
+  console.log(resp);
+  return resp;
 }

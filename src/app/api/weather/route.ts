@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PointWeatherData, RegionWeatherData, PowerAPIResponse } from "@/types";
+import { PointWeatherData, PowerAPIResponse, RegionWeatherData } from "@/types";
 
 export async function POST(request: NextRequest) {
   try {
@@ -79,9 +79,9 @@ async function fetchPointWeatherData(
   if (temps.length === 0) throw new Error("No historical data for the specified date");
 
   //  Calcular promedio histórico para esa fecha
-  const temp_max_avg = temps.reduce((a, b) => a + b, 0) / temps.length;
-  const precipitation_avg = precs.reduce((a, b) => a + b, 0) / precs.length;
-  const wind_avg = winds.length > 0 ? winds.reduce((a, b) => a + b, 0) / winds.length : 5;
+  const temp_max_avg = +Number(temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(2);
+  const precipitation_avg = +Number(precs.reduce((a, b) => a + b, 0) / precs.length).toFixed(2);
+  const wind_avg = +Number(winds.length > 0 ? winds.reduce((a, b) => a + b, 0) / winds.length : 5).toFixed(2);
   //calcular las temperatura por año
 
   //  Calcular tendencia lineal de la temperatura por año
@@ -110,13 +110,12 @@ async function fetchPointWeatherData(
   //probabilidades según el año
   const yearsAhead = targetYear - endYear;
   const temp_projection = temp_max_avg + slope_per_year * yearsAhead;
-  const precip_projection = precipitation_avg; 
 
   const probabilities = {
-    very_hot: Math.min(1, Math.max(0, (temp_projection - temp_max_avg)/5 + 0.4)),
-    very_cold: Math.min(1, Math.max(0, (temp_max_avg - temp_projection) / 5)),
-    very_wet: Math.min(1, precip_projection / 10),
-    very_windy: Math.min(1, wind_avg / 10),
+    very_hot: Number((Math.min(1, Math.max(0, (temp_projection - temp_max_avg) / 5 + 0.4))).toFixed(2)),
+    very_cold: Number((Math.min(1, Math.max(0, (temp_max_avg - temp_projection) / 5))).toFixed(2)),
+    very_wet: Number((Math.min(1, precipitation_avg / 10)).toFixed(2)),
+    very_windy: Number((Math.min(1, wind_avg / 10)).toFixed(2)),
   };
 
   return {
