@@ -6,7 +6,8 @@ import { WeatherDataDisplay } from "@/components/weather-data-display"
 import { DataExport } from "@/components/data-export"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
-import { PointWeatherData, RegionWeatherData, WeatherData } from "@/types";
+import { WeatherData } from "@/types"
+import { fetchWeatherData as fetchWeatherDataAPI } from "@/services/weather-api"
 
 export default function Home() {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null)
@@ -24,72 +25,19 @@ export default function Home() {
   const fetchWeatherData = async () => {
     setLoading(true)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-
-    if (selectionMode === "point" && selectedPoint) {
-      const mockPointData: PointWeatherData = {
-        type: "point",
-        location: selectedPoint,
-        target_date: {
-          year: targetYear,
-          month: 7,
-          day: 15,
-        },
-        probabilities: {
-          very_hot: 0.42,
-          very_cold: 0.0,
-          very_wet: 0.15,
-          very_windy: 0.1,
-        },
-        trend: {
-          very_hot_increasing: true,
-          change_per_decade: 0.08,
-        },
-        historical_baseline: {
-          temp_max_avg: 28.5,
-          precipitation_avg: 2.8,
-        },
-        years_analyzed: "1981-2024",
-      }
-      setWeatherData(mockPointData)
-    } else {
-      const mockRegionData: RegionWeatherData = {
-        type: "region",
-        region: {
-          bbox: selectedRegion,
-        },
-        target_date: {
-          year: targetYear,
-          month: 7,
-          day: 15,
-        },
-        probabilities: {
-          very_hot: 0.45,
-          very_cold: 0.0,
-          very_wet: 0.18,
-          very_windy: 0.12,
-          very_uncomfortable: 0.35,
-        },
-        regional_stats: {
-          temp_max_avg: 29.8,
-          temp_max_range: {
-            min: 27.2,
-            max: 32.1,
-          },
-          precipitation_avg: 3.5,
-        },
-        trend: {
-          very_hot_increasing: true,
-          change_per_decade: 0.09,
-        },
-        grid_points_analyzed: 16,
-        years_analyzed: "1981-2024",
-      }
-      setWeatherData(mockRegionData)
+    try {
+      const data = await fetchWeatherDataAPI({
+        mode: selectionMode,
+        point: selectedPoint || undefined,
+        region: selectedRegion,
+        targetYear,
+      })
+      setWeatherData(data)
+    } catch (error) {
+      console.error("Failed to fetch weather data:", error)
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   return (
