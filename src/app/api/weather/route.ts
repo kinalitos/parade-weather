@@ -6,12 +6,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { mode, point, region, targetYear, month, day } = body;
 
-    // TODO: Add NASA API authentication and credentials here
-    // const NASA_API_KEY = process.env.NASA_API_KEY;
-
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
     if (mode === "point" && point) {
       const data = await fetchPointWeatherData(point, { year: targetYear, month, day });
 

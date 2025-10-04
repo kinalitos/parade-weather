@@ -1,16 +1,5 @@
-import { WeatherData } from "@/types";
+import { FetchWeatherParams, WeatherData } from "@/types";
 
-interface FetchWeatherParams {
-  mode: "point" | "region";
-  point?: { lat: number; lon: number };
-  region?: {
-    lat_min: number;
-    lat_max: number;
-    lon_min: number;
-    lon_max: number;
-  };
-  targetYear: number;
-}
 
 /**
  * Client-side API call to fetch weather data from our Next.js API route
