@@ -14,35 +14,45 @@ export function HomePage() {
   const { params, updateParams } = useWeatherSearchParams()
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null)
   const [loading, setLoading] = useState(false)
+  const [locationReady, setLocationReady] = useState(false)
+  const [locationError, setLocationError] = useState<string | null>(null)
 
-  // Get user's location on mount if no location in URL
+  // Get user's location on mount - REQUIRED
   useEffect(() => {
-    // Only get location if in point mode and no lat/lon set
-    if (params.mode === "point" && !params.lat && !params.lon) {
+    // Only get location if no location in URL
+    if (!params.lat && !params.lon && !params.lat_min) {
       if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
+            const lat = position.coords.latitude
+            const lon = position.coords.longitude
+
+            // Create a small bbox around the user's location (approx 0.02 degrees ~ 2km)
+            const offset = 0.01
+
             updateParams({
-              lat: position.coords.latitude,
-              lon: position.coords.longitude,
+              mode: "point",
+              lat,
+              lon,
+              lat_min: lat - offset,
+              lat_max: lat + offset,
+              lon_min: lon - offset,
+              lon_max: lon + offset,
             })
+            setLocationReady(true)
           },
           (error) => {
-            console.log("Could not get user location:", error)
-            // Fallback to default location (San Francisco)
-            updateParams({
-              lat: 37.7749,
-              lon: -122.4194,
-            })
+            console.error("Geolocation error:", error)
+            setLocationError("Please allow location access to use this app")
+            setLocationReady(true)
           }
         )
       } else {
-        // Fallback if geolocation not available
-        updateParams({
-          lat: 37.7749,
-          lon: -122.4194,
-        })
+        setLocationError("Geolocation is not supported by your browser")
+        setLocationReady(true)
       }
+    } else {
+      setLocationReady(true)
     }
   }, []) // Empty dependency array - only run once on mount
 
@@ -109,6 +119,64 @@ export function HomePage() {
     }
   }
 
+  const handleModeChange = (mode: "point" | "region") => {
+    if (mode === "region" && params.lat && params.lon) {
+      // Switching from point to region: create a bbox around the current point
+      const offset = 0.01 // approx 1-2km
+      updateParams({
+        mode,
+        lat_min: params.lat - offset,
+        lat_max: params.lat + offset,
+        lon_min: params.lon - offset,
+        lon_max: params.lon + offset,
+      })
+    } else if (mode === "point") {
+      // Switching from region to point: use center of region as point
+      const centerLat = (params.lat_min + params.lat_max) / 2
+      const centerLon = (params.lon_min + params.lon_max) / 2
+      updateParams({
+        mode,
+        lat: centerLat,
+        lon: centerLon,
+      })
+    } else {
+      updateParams({ mode })
+    }
+  }
+
+  // Show loading screen while getting location
+  if (!locationReady) {
+    return (
+      <main className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4 px-4">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary"/>
+          <p className="text-lg text-foreground">Requesting location access...</p>
+          <p className="text-sm text-muted-foreground max-w-md">
+            Please allow location access to use Climate Forecast
+          </p>
+        </div>
+      </main>
+    )
+  }
+
+  // Show error screen if location was denied
+  if (locationError) {
+    return (
+      <main className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4 px-4">
+          <div className="text-6xl opacity-20">📍</div>
+          <p className="text-lg text-foreground">{locationError}</p>
+          <p className="text-sm text-muted-foreground max-w-md">
+            This app requires your location to provide accurate climate forecasts
+          </p>
+          <Button onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </div>
+      </main>
+    )
+  }
+
   return (
     <main className="min-h-screen bg-background">
       {/* Header */}
@@ -146,7 +214,7 @@ export function HomePage() {
         <div className="container mx-auto px-4 md:px-6 py-4 md:py-6">
           <WeatherMap
             selectionMode={params.mode}
-            onSelectionModeChange={(mode) => updateParams({ mode })}
+            onSelectionModeChange={handleModeChange}
             selectedPoint={params.lat && params.lon ? { lat: params.lat, lon: params.lon } : null}
             onPointSelect={(point) => updateParams({ lat: point.lat, lon: point.lon })}
             selectedRegion={{
