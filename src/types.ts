@@ -65,3 +65,29 @@ export interface RegionWeatherData {
 }
 
 export type WeatherData = PointWeatherData | RegionWeatherData
+
+
+export interface PowerAPIResponse {
+  properties: {
+    parameter: {
+      T2M: { [key: string]: number };
+      PRECTOTCORR: { [key: string]: number };
+      WS2M: { [key: string]: number }; // ⚡ aquí se agrega
+    };
+  };
+}
+
+
+export interface FetchWeatherParams {
+  mode: "point" | "region";
+  point?: { lat: number; lon: number };
+  region?: {
+    lat_min: number;
+    lat_max: number;
+    lon_min: number;
+    lon_max: number;
+  };
+  targetYear: number;
+  month: number; 
+  day: number;
+}

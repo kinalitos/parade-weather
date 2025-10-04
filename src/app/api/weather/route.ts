@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PointWeatherData, RegionWeatherData } from "@/types";
+import { PointWeatherData, RegionWeatherData, PowerAPIResponse } from "@/types";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { mode, point, region, targetYear } = body;
+    const { mode, point, region, targetYear, month, day } = body;
 
     // TODO: Add NASA API authentication and credentials here
     // const NASA_API_KEY = process.env.NASA_API_KEY;
@@ -13,10 +13,11 @@ export async function POST(request: NextRequest) {
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
     if (mode === "point" && point) {
-      const data = await fetchPointWeatherData(point, targetYear);
+      const data = await fetchPointWeatherData(point, { year: targetYear, month, day });
+
       return NextResponse.json(data);
     } else if (mode === "region" && region) {
-      const data = await fetchRegionWeatherData(region, targetYear);
+      const data = await fetchRegionWeatherData(region, targetYear, month, day);
       return NextResponse.json(data);
     }
 
@@ -42,42 +43,96 @@ export async function POST(request: NextRequest) {
  */
 async function fetchPointWeatherData(
   location: { lat: number; lon: number },
-  targetYear: number
+  targetDate: { year: number; month: number; day: number }
 ): Promise<PointWeatherData> {
-  // TODO: Replace with actual NASA API calls
-  // Example: fetch from NASA POWER API
-  // const response = await fetch(
-  //   `https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M,PRECTOTCORR&community=AG&longitude=${location.lon}&latitude=${location.lat}&start=19810101&end=20241231&format=JSON`,
-  //   {
-  //     headers: {
-  //       'Authorization': `Bearer ${process.env.NASA_API_KEY}`
-  //     }
-  //   }
-  // );
+  const { year: targetYear, month, day } = targetDate;
+
+  const startYear = 1981;
+  const endYear = 2024;
+
+  const startDate = `${startYear}0101`;
+  const endDate = `${endYear}1231`;
+
+  const NASA_BEARER_TOKEN = process.env.NASA_BEARER_TOKEN;
+
+  const url = `https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M,PRECTOTCORR&community=AG&longitude=${location.lon}&latitude=${location.lat}&start=${startDate}&end=${endDate}&format=JSON`;
+
+
+  // se hace el fetch al api para jalar los datos
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${NASA_BEARER_TOKEN}`,
+    },
+  });
+
+  if (!response.ok) throw new Error("Failed to fetch NASA POWER data");
+
+  const data: PowerAPIResponse = await response.json();
+
+  const temps: number[] = [];
+  const precs: number[] = [];
+  const winds: number[] = [];
+
+  for (const [date, temp] of Object.entries(data.properties.parameter.T2M)) {
+    const t = Number(temp);
+    const d = new Date(date.slice(0, 4) + '-' + date.slice(4, 6) + '-' + date.slice(6, 8));
+    if (d.getMonth() + 1 === month && d.getDate() === day) {
+      temps.push(t);
+      precs.push(Number(data.properties.parameter.PRECTOTCORR[date]));
+    }
+  }
+
+  if (temps.length === 0) throw new Error("No historical data for the specified date");
+
+  //  Calcular promedio histórico para esa fecha
+  const temp_max_avg = temps.reduce((a, b) => a + b, 0) / temps.length;
+  const precipitation_avg = precs.reduce((a, b) => a + b, 0) / precs.length;
+  const wind_avg = winds.length > 0 ? winds.reduce((a, b) => a + b, 0) / winds.length : 5;
+  //calcular las temperatura por año
+
+  //  Calcular tendencia lineal de la temperatura por año
+  const yearlyData: { year: number; temp_max: number }[] = [];
+
+  for (let y = startYear; y <= endYear; y++) {
+    const dailyTemps = Object.entries(data.properties.parameter.T2M)
+      .filter(([date]) => date.startsWith(y.toString()))
+      .map(([, t]) => Number(t)); 
+    const avg = dailyTemps.length > 0 ? dailyTemps.reduce((a, b) => a + b, 0) / dailyTemps.length : 0;
+
+    yearlyData.push({ year: y, temp_max: avg });
+  }
+
+
+  const n = yearlyData.length;
+  const x = yearlyData.map(d => d.year);
+  const yVals = yearlyData.map(d => d.temp_max);
+  const x_mean = x.reduce((a, b) => a + b, 0) / n;
+  const y_mean = yVals.reduce((a, b) => a + b, 0) / n;
+  const numerator = x.reduce((sum, xi, i) => sum + (xi - x_mean) * (yVals[i] - y_mean), 0);
+  const denominator = x.reduce((sum, xi) => sum + (xi - x_mean) ** 2, 0);
+  const slope_per_year = numerator / denominator;
+  const change_per_decade = slope_per_year * 10;
+
+  //probabilidades según el año
+  const yearsAhead = targetYear - endYear;
+  const temp_projection = temp_max_avg + slope_per_year * yearsAhead;
+  const precip_projection = precipitation_avg; 
+
+  const probabilities = {
+    very_hot: Math.min(1, Math.max(0, (temp_projection - temp_max_avg)/5 + 0.4)),
+    very_cold: Math.min(1, Math.max(0, (temp_max_avg - temp_projection) / 5)),
+    very_wet: Math.min(1, precip_projection / 10),
+    very_windy: Math.min(1, wind_avg / 10),
+  };
 
   return {
     type: "point",
     location,
-    target_date: {
-      year: targetYear,
-      month: 7,
-      day: 15,
-    },
-    probabilities: {
-      very_hot: 0.42,
-      very_cold: 0.0,
-      very_wet: 0.15,
-      very_windy: 0.1,
-    },
-    trend: {
-      very_hot_increasing: true,
-      change_per_decade: 0.08,
-    },
-    historical_baseline: {
-      temp_max_avg: 28.5,
-      precipitation_avg: 2.8,
-    },
-    years_analyzed: "1981-2024",
+    target_date: { year: targetYear, month, day },
+    probabilities,
+    trend: { very_hot_increasing: slope_per_year > 0, change_per_decade },
+    historical_baseline: { temp_max_avg, precipitation_avg },
+    years_analyzed: `${startYear}-${endYear}`,
   };
 }
 
@@ -95,7 +150,7 @@ async function fetchRegionWeatherData(
     lon_min: number;
     lon_max: number;
   },
-  targetYear: number
+  targetYear: number, month: number, day: number
 ): Promise<RegionWeatherData> {
   // TODO: Replace with actual NASA API calls for regional data
   // May need to:
