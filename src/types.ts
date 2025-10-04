@@ -35,6 +35,13 @@ export interface RegionWeatherData {
       lon_min: number
       lon_max: number
     }
+    grid_points: {
+      lat: number;
+      lon: number;
+      temp_avg: number;
+      precip_avg: number;
+    }[];
+
   }
   target_date: {
     year: number
@@ -62,6 +69,11 @@ export interface RegionWeatherData {
   }
   grid_points_analyzed: number
   years_analyzed: string
+  worldview_layer?: {
+    url: string;
+    layer: string;
+  };
+
 }
 
 export type WeatherData = PointWeatherData | RegionWeatherData
