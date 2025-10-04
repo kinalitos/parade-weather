@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useEffect } from "react";
-import { MapContainer, TileLayer, FeatureGroup, Marker, Rectangle } from 'react-leaflet';
+import { MapContainer, TileLayer, FeatureGroup, Marker, Rectangle, useMapEvents, useMap } from 'react-leaflet';
 import { EditControl } from "react-leaflet-draw";
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -34,6 +34,31 @@ interface WeatherMapContentProps {
     lon_min: number;
     lon_max: number;
   }) => void;
+  zoom?: number;
+  onZoomChange?: (zoom: number) => void;
+}
+
+// Component to track zoom changes
+function ZoomHandler({ onZoomChange }: { onZoomChange?: (zoom: number) => void }) {
+  useMapEvents({
+    zoomend: (e) => {
+      if (onZoomChange) {
+        onZoomChange(e.target.getZoom());
+      }
+    },
+  });
+  return null;
+}
+
+// Component to update map center without re-rendering
+function CenterUpdater({ center }: { center: [number, number] }) {
+  const map = useMap();
+
+  useEffect(() => {
+    map.setView(center, map.getZoom());
+  }, [center[0], center[1], map]);
+
+  return null;
 }
 
 function WeatherMapContent({
@@ -42,6 +67,8 @@ function WeatherMapContent({
   onPointSelect,
   selectedRegion,
   onRegionSelect,
+  zoom = 2,
+  onZoomChange,
 }: WeatherMapContentProps) {
   const featureGroupRef = useRef<L.FeatureGroup>(null);
 
@@ -77,11 +104,25 @@ function WeatherMapContent({
     }
   };
 
+  // Determine map center based on selection
+  const getCenter = (): [number, number] => {
+    if (selectionMode === "point" && selectedPoint) {
+      return [selectedPoint.lat, selectedPoint.lon];
+    } else if (selectionMode === "region") {
+      // Center of the region bbox
+      const centerLat = (selectedRegion.lat_min + selectedRegion.lat_max) / 2;
+      const centerLon = (selectedRegion.lon_min + selectedRegion.lon_max) / 2;
+      return [centerLat, centerLon];
+    }
+    // Default to world view
+    return [20, 0];
+  };
+
   return (
     <div className="h-[280px] md:h-[500px] w-full">
       <MapContainer
         center={[20, 0]}
-        zoom={2}
+        zoom={zoom}
         style={{ height: '100%', width: '100%' }}
         zoomControl={true}
       >
@@ -89,6 +130,9 @@ function WeatherMapContent({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+
+        <CenterUpdater center={getCenter()} />
+        <ZoomHandler onZoomChange={onZoomChange} />
 
         <FeatureGroup ref={featureGroupRef}>
           <EditControl

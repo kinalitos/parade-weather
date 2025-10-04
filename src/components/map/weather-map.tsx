@@ -29,6 +29,8 @@ interface WeatherMapProps {
     day: number;
   };
   onDateChange: (date: { year: number; month: number; day: number }) => void;
+  zoom?: number;
+  onZoomChange?: (zoom: number) => void;
 }
 
 // Dynamically import the map component with no SSR
