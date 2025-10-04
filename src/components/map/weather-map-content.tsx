@@ -78,7 +78,7 @@ function WeatherMapContent({
   };
 
   return (
-    <div className="h-[500px] w-full">
+    <div className="h-[280px] md:h-[500px] w-full">
       <MapContainer
         center={[20, 0]}
         zoom={2}

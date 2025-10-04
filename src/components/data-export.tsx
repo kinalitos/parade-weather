@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Download, Copy, FileJson, FileSpreadsheet, Upload, Check } from "lucide-react"
+import { Download, Copy, FileJson, FileSpreadsheet, Upload, Check, ChevronDown, ChevronUp } from "lucide-react"
 
 interface PointWeatherData {
   type: "point"
@@ -84,6 +84,7 @@ export function DataExport({ data, onImport }: DataExportProps) {
   const [importText, setImportText] = useState("")
   const [copiedJson, setCopiedJson] = useState(false)
   const [copiedCsv, setCopiedCsv] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
 
   const convertToCSV = (data: WeatherData): string => {
     const isRegion = data.type === "region"
@@ -206,56 +207,73 @@ export function DataExport({ data, onImport }: DataExportProps) {
 
   return (
     <Card className="p-4 md:p-6 border-border bg-card">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="flex items-center justify-between w-full text-left"
+      >
         <div>
           <h2 className="text-base md:text-lg font-semibold text-foreground">Export Data</h2>
           <p className="text-xs md:text-sm text-muted-foreground mt-1">Download or copy forecast data</p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => setShowImport(!showImport)} className="w-full sm:w-auto">
-          <Upload className="h-4 w-4 mr-2" />
-          {showImport ? "Hide Import" : "Import JSON"}
-        </Button>
-      </div>
-
-      {showImport && (
-        <div className="mb-4 space-y-2">
-          <Textarea
-            placeholder="Paste JSON data here..."
-            value={importText}
-            onChange={(e) => setImportText(e.target.value)}
-            className="min-h-[120px] font-mono text-xs"
-          />
-          <Button onClick={handleImport} size="sm" className="w-full sm:w-auto">
-            Import Data
-          </Button>
+        <div className="flex items-center gap-2">
+          {isExpanded ? (
+            <ChevronUp className="h-5 w-5 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="h-5 w-5 text-muted-foreground" />
+          )}
         </div>
-      )}
+      </button>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
+      {isExpanded && (
+        <div className="mt-4 space-y-4">
+          <div className="flex justify-end">
+            <Button variant="outline" size="sm" onClick={() => setShowImport(!showImport)} className="w-full sm:w-auto">
+              <Upload className="h-4 w-4 mr-2" />
+              {showImport ? "Hide Import" : "Import JSON"}
+            </Button>
+          </div>
+
+          {showImport && (
+            <div className="space-y-2">
+              <Textarea
+                placeholder="Paste JSON data here..."
+                value={importText}
+                onChange={(e) => setImportText(e.target.value)}
+                className="min-h-[120px] font-mono text-xs"
+              />
+              <Button onClick={handleImport} size="sm" className="w-full sm:w-auto">
+                Import Data
+              </Button>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
         <Button onClick={downloadJSON} variant="outline" size="sm" className="justify-start bg-transparent">
-          <Download className="h-4 w-4 mr-2" />
-          <FileJson className="h-4 w-4 mr-2" />
-          <span className="text-xs md:text-sm">Download JSON</span>
+          <Download className="h-4 w-4 mr-1" />
+          <FileJson className="h-4 w-4 mr-1" />
+          <span className="text-xs md:text-sm">JSON</span>
         </Button>
 
         <Button onClick={downloadCSV} variant="outline" size="sm" className="justify-start bg-transparent">
-          <Download className="h-4 w-4 mr-2" />
-          <FileSpreadsheet className="h-4 w-4 mr-2" />
-          <span className="text-xs md:text-sm">Download CSV</span>
+          <Download className="h-4 w-4 mr-1" />
+          <FileSpreadsheet className="h-4 w-4 mr-1" />
+          <span className="text-xs md:text-sm">CSV</span>
         </Button>
 
         <Button onClick={copyJSON} variant="outline" size="sm" className="justify-start bg-transparent">
-          {copiedJson ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
-          <FileJson className="h-4 w-4 mr-2" />
+          {copiedJson ? <Check className="h-4 w-4 mr-1" /> : <Copy className="h-4 w-4 mr-1" />}
+          <FileJson className="h-4 w-4 mr-1" />
           <span className="text-xs md:text-sm">{copiedJson ? "Copied!" : "Copy JSON"}</span>
         </Button>
 
         <Button onClick={copyCSV} variant="outline" size="sm" className="justify-start bg-transparent">
-          {copiedCsv ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
-          <FileSpreadsheet className="h-4 w-4 mr-2" />
+          {copiedCsv ? <Check className="h-4 w-4 mr-1" /> : <Copy className="h-4 w-4 mr-1" />}
+          <FileSpreadsheet className="h-4 w-4 mr-1" />
           <span className="text-xs md:text-sm">{copiedCsv ? "Copied!" : "Copy CSV"}</span>
         </Button>
       </div>
+        </div>
+      )}
     </Card>
   )
 }
