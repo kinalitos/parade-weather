@@ -242,7 +242,7 @@ async function fetchRegionWeatherData(
       if (tempsPoint.length > 0) {
         yearlyTemps.push(tempsPoint.reduce((a, b) => a + b, 0) / tempsPoint.length);
       } else {
-        yearlyTemps.push(0); 
+        yearlyTemps.push(0);
       }
     }
 
@@ -273,10 +273,83 @@ async function fetchRegionWeatherData(
     very_uncomfortable: Number(Math.min(1, (temp_projection + wind_avg) / 50).toFixed(2)),
   };
 
+ /**
+  *  const grid_points = gridPoints.map((point, i) => {
+    const temps = tempsAll[i];
+    const precs = precsAll[i];
+    const temp_avg = temps.length > 0 ? +(temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(2) : 0;
+    const precip_avg = precs.length > 0 ? +(precs.reduce((a, b) => a + b, 0) / precs.length).toFixed(2) : 0;
+    return { lat: point.lat, lon: point.lon, temp_avg, precip_avg };
+  });
+
+  let closestYear = startYear;
+let minDiff = Infinity;
+// Iteramos sobre cada año histórico
+for (let y = startYear; y <= endYear; y++) {
+  const yearlyTemps: number[] = [];
+  for (let i = 0; i < gridPoints.length; i++) {
+    const tempsPoint = tempsAll[i];
+    if (tempsPoint.length > 0) {
+      yearlyTemps.push(tempsPoint.reduce((a, b) => a + b, 0) / tempsPoint.length);
+    }
+  }
+  const avgTemp = yearlyTemps.reduce((a, b) => a + b, 0) / yearlyTemps.length;
+  const diff = Math.abs(avgTemp - temp_projection);
+  if (diff < minDiff) {
+    minDiff = diff;
+    closestYear = y;
+  }
+}
+  */
+
+
+  // --- Encontrar el año histórico más cercano ---
+  let minDiff = Infinity;
+  let closestYear = startYear;
+  for (let y = startYear; y <= endYear; y++) {
+    const avgTemp = yearlyData.find(d => d.year === y)?.temp_max || 0;
+    const diff = Math.abs(avgTemp - temp_projection);
+    if (diff < minDiff) {
+      minDiff = diff;
+      closestYear = y;
+    }
+  }
+
+  // MODIS disponible solo desde 2000
+  if (closestYear < 2000) closestYear = 2005;
+
+  const proxyYear = closestYear;
+  const proxyMonth = month.toString().padStart(2, "0");
+  const proxyDay = day > 28 ? "01" : day.toString().padStart(2, "0"); // fallback día seguro
+
+  const worldview_layer = {
+    url:
+      `https://wvs.earthdata.nasa.gov/api/v1/snapshot?REQUEST=GetSnapshot&FORMAT=image/png` +
+      `&BBOX=${region.lon_min},${region.lat_min},${region.lon_max},${region.lat_max}` +
+      `&CRS=EPSG:4326` +
+      `&LAYERS=MODIS_Terra_CorrectedReflectance_TrueColor` +
+      `&WIDTH=512&HEIGHT=512` +
+      `&TIME=${proxyYear}-${proxyMonth}-${proxyDay}`,
+    layer: "MODIS_Terra_CorrectedReflectance_TrueColor",
+  };
+
+  const grid_points = gridPoints.map((point, i) => {
+    const temps = tempsAll[i];
+    const precs = precsAll[i];
+    const temp_avg =
+      temps.length > 0 ? +(temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(2) : 0;
+    const precip_avg =
+      precs.length > 0 ? +(precs.reduce((a, b) => a + b, 0) / precs.length).toFixed(2) : 0;
+    return { lat: point.lat, lon: point.lon, temp_avg, precip_avg };
+  });
+
 
   return {
     type: "region",
-    region: { bbox: region },
+    region: {
+      bbox: region,
+      grid_points // <-- agregamos el array con temp_avg y precip_avg
+    },
     target_date: { year: targetYear, month, day },
     probabilities,
     regional_stats: {
@@ -290,5 +363,7 @@ async function fetchRegionWeatherData(
     trend: { very_hot_increasing: slope_per_year > 0, change_per_decade },
     grid_points_analyzed: gridPoints.length,
     years_analyzed: `${startYear}-${endYear}`,
+    worldview_layer, 
   };
+
 }
