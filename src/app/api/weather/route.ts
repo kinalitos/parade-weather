@@ -4,7 +4,7 @@ import { PointWeatherData, RegionWeatherData } from "@/types";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { mode, point, region, targetYear } = body;
+    const { mode, point, region, target_year, target_month, target_day } = body;
 
     // TODO: Add NASA API authentication and credentials here
     // const NASA_API_KEY = process.env.NASA_API_KEY;
@@ -13,10 +13,10 @@ export async function POST(request: NextRequest) {
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
     if (mode === "point" && point) {
-      const data = await fetchPointWeatherData(point, targetYear);
+      const data = await fetchPointWeatherData(point, target_year, target_month, target_day);
       return NextResponse.json(data);
     } else if (mode === "region" && region) {
-      const data = await fetchRegionWeatherData(region, targetYear);
+      const data = await fetchRegionWeatherData(region, target_year, target_month, target_day);
       return NextResponse.json(data);
     }
 
@@ -42,7 +42,9 @@ export async function POST(request: NextRequest) {
  */
 async function fetchPointWeatherData(
   location: { lat: number; lon: number },
-  targetYear: number
+  target_year: number,
+  target_month: number,
+  target_day: number
 ): Promise<PointWeatherData> {
   // TODO: Replace with actual NASA API calls
   // Example: fetch from NASA POWER API
@@ -59,9 +61,9 @@ async function fetchPointWeatherData(
     type: "point",
     location,
     target_date: {
-      year: targetYear,
-      month: 7,
-      day: 15,
+      year: target_year,
+      month: target_month,
+      day: target_day,
     },
     probabilities: {
       very_hot: 0.42,
@@ -95,7 +97,9 @@ async function fetchRegionWeatherData(
     lon_min: number;
     lon_max: number;
   },
-  targetYear: number
+  target_year: number,
+  target_month: number,
+  target_day: number
 ): Promise<RegionWeatherData> {
   // TODO: Replace with actual NASA API calls for regional data
   // May need to:
@@ -109,9 +113,9 @@ async function fetchRegionWeatherData(
       bbox: region,
     },
     target_date: {
-      year: targetYear,
-      month: 7,
-      day: 15,
+      year: target_year,
+      month: target_month,
+      day: target_day,
     },
     probabilities: {
       very_hot: 0.45,

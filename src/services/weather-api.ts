@@ -9,7 +9,9 @@ interface FetchWeatherParams {
     lon_min: number;
     lon_max: number;
   };
-  targetYear: number;
+  target_year: number;
+  target_month: number;
+  target_day: number;
 }
 
 /**

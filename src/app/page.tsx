@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from "react"
-import { MapView } from "@/components/map-view"
+import { useState, useEffect } from "react"
 import { WeatherDataDisplay } from "@/components/weather-data-display"
 import { DataExport } from "@/components/data-export"
 import { Button } from "@/components/ui/button"
-import { Loader2 } from "lucide-react"
+import { Loader2, RefreshCw } from "lucide-react"
 import { WeatherData } from "@/types"
 import { fetchWeatherData as fetchWeatherDataAPI } from "@/services/weather-api"
+import { WeatherMap } from "@/components/map/weather-map";
 
 export default function Home() {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null)
@@ -20,9 +20,18 @@ export default function Home() {
     lon_min: -0.15,
     lon_max: -0.05,
   })
-  const [targetYear, setTargetYear] = useState(new Date().getFullYear() + 1)
+  const [targetDate, setTargetDate] = useState({
+    year: new Date().getFullYear() + 1,
+    month: 7,
+    day: 15,
+  })
 
   const fetchWeatherData = async () => {
+    // Don't fetch if in point mode and no point selected
+    if (selectionMode === "point" && !selectedPoint) {
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -30,7 +39,9 @@ export default function Home() {
         mode: selectionMode,
         point: selectedPoint || undefined,
         region: selectedRegion,
-        targetYear,
+        target_year: targetDate.year,
+        target_month: targetDate.month,
+        target_day: targetDate.day,
       })
       setWeatherData(data)
     } catch (error) {
@@ -38,6 +49,25 @@ export default function Home() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Auto-fetch when selection or date changes
+  useEffect(() => {
+    fetchWeatherData()
+  }, [selectionMode, selectedPoint, selectedRegion, targetDate])
+
+  const handleImportData = (importedData: WeatherData) => {
+    // Update map selection based on imported data
+    if (importedData.type === "point") {
+      setSelectionMode("point")
+      setSelectedPoint(importedData.location)
+    } else if (importedData.type === "region") {
+      setSelectionMode("region")
+      setSelectedRegion(importedData.region.bbox)
+    }
+
+    // Update target date from imported data (this will trigger auto-fetch via useEffect)
+    setTargetDate(importedData.target_date)
   }
 
   return (
@@ -50,20 +80,24 @@ export default function Home() {
               <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">Climate Forecast</h1>
               <p className="text-xs md:text-sm text-muted-foreground mt-1">Regional weather probability analysis</p>
             </div>
-            <Button
-              onClick={fetchWeatherData}
-              disabled={loading}
-              className="h-9 md:h-10 px-4 md:px-6 font-medium w-full sm:w-auto"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Analyzing...
-                </>
-              ) : (
-                "Fetch Forecast"
+            <div className="flex items-center gap-2">
+              {loading && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Loading...</span>
+                </div>
               )}
-            </Button>
+              <Button
+                onClick={fetchWeatherData}
+                disabled={loading}
+                variant="outline"
+                size="sm"
+                className="gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Refresh
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -71,24 +105,34 @@ export default function Home() {
       {/* Map Section */}
       <div className="border-b border-border">
         <div className="container mx-auto px-4 md:px-6 py-4 md:py-6">
-          <MapView
+          <WeatherMap
             selectionMode={selectionMode}
             onSelectionModeChange={setSelectionMode}
             selectedPoint={selectedPoint}
             onPointSelect={setSelectedPoint}
             selectedRegion={selectedRegion}
             onRegionSelect={setSelectedRegion}
-            targetYear={targetYear}
-            onYearChange={setTargetYear}
+            targetDate={targetDate}
+            onDateChange={setTargetDate}
           />
         </div>
       </div>
 
       {/* Data Dashboard */}
       <div className="container mx-auto px-4 md:px-6 py-4 md:py-6">
-        {weatherData ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-12 md:py-20">
+            <div className="text-center space-y-3 px-4">
+              <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+              <p className="text-muted-foreground text-base md:text-lg">Fetching weather data...</p>
+              <p className="text-xs md:text-sm text-muted-foreground max-w-md">
+                Analyzing climate probabilities for your selection
+              </p>
+            </div>
+          </div>
+        ) : weatherData ? (
           <div className="space-y-6">
-            <DataExport data={weatherData} />
+            <DataExport data={weatherData} onImport={handleImportData} />
             <WeatherDataDisplay data={weatherData} />
           </div>
         ) : (
@@ -97,7 +141,7 @@ export default function Home() {
               <div className="text-4xl md:text-6xl opacity-20">📊</div>
               <p className="text-muted-foreground text-base md:text-lg">No forecast data loaded</p>
               <p className="text-xs md:text-sm text-muted-foreground max-w-md">
-                Select a {selectionMode === "point" ? "location" : "region"} on the map above and click "Fetch Forecast"
+                Select a {selectionMode === "point" ? "location" : "region"} on the map above
                 to analyze climate probabilities
               </p>
             </div>

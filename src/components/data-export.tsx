@@ -76,9 +76,10 @@ type WeatherData = PointWeatherData | RegionWeatherData
 
 interface DataExportProps {
   data: WeatherData
+  onImport?: (data: WeatherData) => void
 }
 
-export function DataExport({ data }: DataExportProps) {
+export function DataExport({ data, onImport }: DataExportProps) {
   const [showImport, setShowImport] = useState(false)
   const [importText, setImportText] = useState("")
   const [copiedJson, setCopiedJson] = useState(false)
@@ -186,9 +187,16 @@ export function DataExport({ data }: DataExportProps) {
   const handleImport = () => {
     try {
       const parsed = JSON.parse(importText)
-      console.log("[v0] Imported data:", parsed)
-      // In a real app, you would validate and use this data
-      alert("Data imported successfully! Check console for details.")
+
+      // Basic validation
+      if (!parsed.type || (parsed.type !== "point" && parsed.type !== "region")) {
+        throw new Error("Invalid data type");
+      }
+
+      if (onImport) {
+        onImport(parsed as WeatherData);
+      }
+
       setImportText("")
       setShowImport(false)
     } catch (error) {
