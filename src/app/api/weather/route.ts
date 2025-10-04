@@ -49,7 +49,7 @@ async function fetchPointWeatherData(
 
   const NASA_BEARER_TOKEN = process.env.NASA_BEARER_TOKEN;
 
-  const url = `https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M,PRECTOTCORR&community=AG&longitude=${location.lon}&latitude=${location.lat}&start=${startDate}&end=${endDate}&format=JSON`;
+  const url = `https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M,PRECTOTCORR,WS2M&community=AG&longitude=${location.lon}&latitude=${location.lat}&start=${startDate}&end=${endDate}&format=JSON`;
 
 
   // se hace el fetch al api para jalar los datos
@@ -73,6 +73,7 @@ async function fetchPointWeatherData(
     if (d.getMonth() + 1 === month && d.getDate() === day) {
       temps.push(t);
       precs.push(Number(data.properties.parameter.PRECTOTCORR[date]));
+      winds.push(Number(data.properties.parameter.WS2M?.[date] || 5));
     }
   }
 
