@@ -171,11 +171,13 @@ async function fetchRegionWeatherData(
     }
   }
 
+  // We will store the results of each fetch request
   const tempsAll: number[][] = [];
   const precsAll: number[][] = [];
   const windAll: number[][] = [];
-  
-  for (const point of gridPoints) {
+
+  // Create promises for each fetch request
+  const fetchPromises = gridPoints.map(async (point) => {
     const url = `https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M,PRECTOTCORR,WS2M&community=AG&longitude=${point.lon}&latitude=${point.lat}&start=${startDate}&end=${endDate}&format=JSON`;
 
     const response = await fetch(url, {
@@ -183,6 +185,7 @@ async function fetchRegionWeatherData(
         Authorization: `Bearer ${NASA_BEARER_TOKEN}`,
       },
     });
+
     if (!response.ok) throw new Error("Failed to fetch NASA POWER data for region");
 
     const data: PowerAPIResponse = await response.json();
@@ -203,10 +206,18 @@ async function fetchRegionWeatherData(
       }
     }
 
+    return { temps, precs, winds };
+  });
+
+  // Wait for all fetches to complete
+  const fetchResults = await Promise.all(fetchPromises);
+
+  // Process the results
+  fetchResults.forEach(({ temps, precs, winds }) => {
     tempsAll.push(temps);
     precsAll.push(precs);
     windAll.push(winds);
-  }
+  });
 
   // Promedios por punto y luego agregados para la región
   const temp_max_avg =
@@ -219,7 +230,7 @@ async function fetchRegionWeatherData(
     windAll.reduce((sum, arr) => sum + arr.reduce((a, b) => a + b, 0) / arr.length, 0) /
     windAll.length;
 
-  //  Calcular tendencia lineal promedio de temperatura
+  // Calcular tendencia lineal promedio de temperatura
   const yearlyData: { year: number; temp_max: number }[] = [];
 
   for (let y = startYear; y <= endYear; y++) {
@@ -269,12 +280,12 @@ async function fetchRegionWeatherData(
     target_date: { year: targetYear, month, day },
     probabilities,
     regional_stats: {
-      temp_max_avg,
+      temp_max_avg: +temp_max_avg.toFixed(2),
       temp_max_range: {
-        min: temp_max_avg - 2,
-        max: temp_max_avg + 2,
+        min: +(temp_max_avg - 2).toFixed(2),
+        max: +(temp_max_avg + 2).toFixed(2),
       },
-      precipitation_avg,
+      precipitation_avg: +precipitation_avg.toFixed(2),
     },
     trend: { very_hot_increasing: slope_per_year > 0, change_per_decade },
     grid_points_analyzed: gridPoints.length,
