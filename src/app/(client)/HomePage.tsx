@@ -42,9 +42,24 @@ export function HomePage() {
             setLocationReady(true)
           },
           (error) => {
-            console.error("Geolocation error:", error)
-            setLocationError("Please allow location access to use this app")
+            console.error("Geolocation error:", error, error.code)
+            let errorMessage = "Unable to get your location"
+
+            if (error.code === error.PERMISSION_DENIED) {
+              errorMessage = "Location access was denied. Please enable it in your browser settings and refresh the page."
+            } else if (error.code === error.POSITION_UNAVAILABLE) {
+              errorMessage = "Location information is unavailable. Please try again."
+            } else if (error.code === error.TIMEOUT) {
+              errorMessage = "Location request timed out. Please try again."
+            }
+
+            setLocationError(errorMessage)
             setLocationReady(true)
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: 10000, // 10 seconds
+            maximumAge: 0
           }
         )
       } else {
@@ -161,17 +176,41 @@ export function HomePage() {
 
   // Show error screen if location was denied
   if (locationError) {
+    const useDefaultLocation = () => {
+      // Use San Francisco as fallback
+      const lat = 37.7749
+      const lon = -122.4194
+      const offset = 0.01
+
+      updateParams({
+        mode: "point",
+        lat,
+        lon,
+        lat_min: lat - offset,
+        lat_max: lat + offset,
+        lon_min: lon - offset,
+        lon_max: lon + offset,
+      })
+      setLocationError(null)
+      setLocationReady(true)
+    }
+
     return (
       <main className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4 px-4">
           <div className="text-6xl opacity-20">📍</div>
           <p className="text-lg text-foreground">{locationError}</p>
           <p className="text-sm text-muted-foreground max-w-md">
-            This app requires your location to provide accurate climate forecasts
+            You can retry or continue with a default location
           </p>
-          <Button onClick={() => window.location.reload()}>
-            Retry
-          </Button>
+          <div className="flex gap-2 justify-center">
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Retry
+            </Button>
+            <Button onClick={useDefaultLocation}>
+              Use Default Location
+            </Button>
+          </div>
         </div>
       </main>
     )
