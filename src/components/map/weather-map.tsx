@@ -2,9 +2,9 @@
 
 import dynamic from 'next/dynamic';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
 import { MapPin, Square } from "lucide-react";
+import { addDays, addYears } from "date-fns";
 
 interface WeatherMapProps {
   selectionMode: "point" | "region";
@@ -29,10 +29,12 @@ interface WeatherMapProps {
     day: number;
   };
   onDateChange: (date: { year: number; month: number; day: number }) => void;
+  zoom?: number;
+  onZoomChange?: (zoom: number) => void;
 }
 
 // Dynamically import the map component with no SSR
-const MapContent = dynamic(() => import('./weather-map-content'), {
+const MapLoadingContent = dynamic(() => import('./weather-map-content'), {
   ssr: false,
   loading: () => (
     <div className="w-full h-[500px] bg-muted flex items-center justify-center">
@@ -42,10 +44,30 @@ const MapContent = dynamic(() => import('./weather-map-content'), {
 });
 
 export function WeatherMap(props: WeatherMapProps) {
-  const currentYear = new Date().getFullYear();
+  // Convert {year, month, day} to Date
+  const dateFromTargetDate = new Date(
+    props.targetDate.year,
+    props.targetDate.month - 1, // JS months are 0-indexed
+    props.targetDate.day
+  );
+
+  // Handle date change from DatePicker
+  const handleDateChange = (date: Date | undefined) => {
+    if (date) {
+      props.onDateChange({
+        year: date.getFullYear(),
+        month: date.getMonth() + 1, // Convert back to 1-indexed
+        day: date.getDate(),
+      });
+    }
+  };
+
+  // Date constraints
+  const tomorrow = addDays(new Date(), 1);
+  const maxDate = addYears(new Date(), 100);
 
   return (
-    <div className="w-full border rounded-lg overflow-hidden">
+    <div className="w-full border rounded-lg overflow-hidden isolate">
       {/* Controls */}
       <div className="p-4 border-b bg-muted/50 space-y-4">
         {/* Mode Selection */}
@@ -71,52 +93,17 @@ export function WeatherMap(props: WeatherMapProps) {
           </div>
         </div>
 
-        {/* Date Inputs */}
+        {/* Date Picker */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <span className="text-sm font-medium">Target Date:</span>
-          <div className="flex gap-2 flex-wrap">
-            <div className="flex items-center gap-2">
-              <Label htmlFor="year" className="text-xs">Year</Label>
-              <Input
-                id="year"
-                type="number"
-                min={currentYear + 1}
-                max={currentYear + 100}
-                value={props.targetDate.year}
-                onChange={(e) =>
-                  props.onDateChange({ ...props.targetDate, year: parseInt(e.target.value) })
-                }
-                className="w-20 h-8 text-xs"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Label htmlFor="month" className="text-xs">Month</Label>
-              <Input
-                id="month"
-                type="number"
-                min={1}
-                max={12}
-                value={props.targetDate.month}
-                onChange={(e) =>
-                  props.onDateChange({ ...props.targetDate, month: parseInt(e.target.value) })
-                }
-                className="w-16 h-8 text-xs"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Label htmlFor="day" className="text-xs">Day</Label>
-              <Input
-                id="day"
-                type="number"
-                min={1}
-                max={31}
-                value={props.targetDate.day}
-                onChange={(e) =>
-                  props.onDateChange({ ...props.targetDate, day: parseInt(e.target.value) })
-                }
-                className="w-16 h-8 text-xs"
-              />
-            </div>
+          <div className="w-full sm:w-auto">
+            <DatePicker
+              date={dateFromTargetDate}
+              onDateChange={handleDateChange}
+              disabled={(date) => date < tomorrow || date > maxDate}
+              fromDate={tomorrow}
+              toDate={maxDate}
+            />
           </div>
         </div>
 
@@ -136,7 +123,7 @@ export function WeatherMap(props: WeatherMapProps) {
       </div>
 
       {/* Map */}
-      <MapContent {...props} />
+      <MapLoadingContent {...props} />
     </div>
   );
 }
