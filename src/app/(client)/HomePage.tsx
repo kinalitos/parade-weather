@@ -3,9 +3,14 @@
 import { useState, useEffect } from "react"
 import { WeatherDataDisplay } from "@/components/weather-data-display"
 import { DataExport } from "@/components/data-export"
+import { ClimateJusticeDashboard } from "@/components/climate-justice-dashboard"
+import { AgriculturalImpact } from "@/components/agricultural-impact"
+import { SatelliteLayersPanel, SatelliteLayer } from "@/components/satellite-layers-panel"
+import { PDFReportGenerator } from "@/components/pdf-report-generator"
 import { Button } from "@/components/ui/button"
-import { Loader2, RefreshCw } from "lucide-react"
-import { WeatherData } from "@/types"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Loader2, RefreshCw, Shield, Wheat, Satellite, BarChart3 } from "lucide-react"
+import { WeatherData, RegionData } from "@/types"
 import { fetchWeatherData as fetchWeatherDataAPI } from "@/services/weather-api"
 import { WeatherMap } from "@/components/map/weather-map"
 import { useWeatherSearchParams } from "@/hooks/use-weather-params"
@@ -14,6 +19,7 @@ import { APP_NAME } from "@/lib/constants"
 export function HomePage() {
   const { params, updateParams } = useWeatherSearchParams()
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null)
+  const [satelliteLayers, setSatelliteLayers] = useState<SatelliteLayer[]>([])
   const [loading, setLoading] = useState(false)
   const [locationReady, setLocationReady] = useState(false)
   const [locationError, setLocationError] = useState<string | null>(null)
@@ -124,10 +130,10 @@ export function HomePage() {
     } else if (importedData.type === "region") {
       updateParams({
         mode: "region",
-        lat_min: importedData.region.bbox.lat_min,
-        lat_max: importedData.region.bbox.lat_max,
-        lon_min: importedData.region.bbox.lon_min,
-        lon_max: importedData.region.bbox.lon_max,
+        lat_min: importedData.region!.bbox.lat_min,
+        lat_max: importedData.region!.bbox.lat_max,
+        lon_min: importedData.region!.bbox.lon_min,
+        lon_max: importedData.region!.bbox.lon_max,
         year: importedData.target_date.year,
         month: importedData.target_date.month,
         day: importedData.target_date.day,
@@ -225,7 +231,7 @@ export function HomePage() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">{APP_NAME}</h1>
-              <p className="text-xs md:text-sm text-muted-foreground mt-1">NASA-powered climate forecast analysis</p>
+              <p className="text-xs md:text-sm text-muted-foreground mt-1">NASA-powered climate analysis with community impact assessment and professional reporting</p>
             </div>
             <div className="flex items-center gap-2">
               {loading && (
@@ -291,7 +297,7 @@ export function HomePage() {
         </div>
       </div>
 
-      {/* Data Dashboard */}
+      {/* Data Dashboard with Tabs */}
       <div className="container mx-auto px-4 md:px-6 py-4 md:py-6">
         {loading ? (
           <div className="flex items-center justify-center py-12 md:py-20">
@@ -304,10 +310,88 @@ export function HomePage() {
             </div>
           </div>
         ) : weatherData ? (
-          <div className="space-y-6">
-            <DataExport data={weatherData} onImport={handleImportData}/>
-            <WeatherDataDisplay data={weatherData}/>
-          </div>
+          <Tabs defaultValue="overview" className="w-full">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+              <TabsList className="grid grid-cols-2 lg:grid-cols-5 w-full sm:w-auto">
+                <TabsTrigger value="overview" className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Overview</span>
+                </TabsTrigger>
+                <TabsTrigger value="climate-justice" className="flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  <span className="hidden sm:inline">Communities</span>
+                </TabsTrigger>
+                <TabsTrigger value="agriculture" className="flex items-center gap-2">
+                  <Wheat className="h-4 w-4" />
+                  <span className="hidden sm:inline">Agriculture</span>
+                </TabsTrigger>
+                <TabsTrigger value="satellite" className="flex items-center gap-2">
+                  <Satellite className="h-4 w-4" />
+                  <span className="hidden sm:inline">Satellite</span>
+                </TabsTrigger>
+                <TabsTrigger value="export" className="flex items-center gap-2">
+                  <RefreshCw className="h-4 w-4" />
+                  <span className="hidden sm:inline">Export</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
+            
+            <TabsContent value="overview" className="space-y-6">
+              <WeatherDataDisplay data={weatherData}/>
+            </TabsContent>
+            
+            <TabsContent value="climate-justice" className="space-y-6">
+              <ClimateJusticeDashboard 
+                weatherData={weatherData}
+                location={{
+                  lat: params.mode === "point" && params.lat ? params.lat : (params.lat_min + params.lat_max) / 2,
+                  lon: params.mode === "point" && params.lon ? params.lon : (params.lon_min + params.lon_max) / 2,
+                  name: "Selected Location"
+                }}
+              />
+            </TabsContent>
+            
+            <TabsContent value="agriculture" className="space-y-6">
+              <AgriculturalImpact 
+                weatherData={weatherData}
+                location={{
+                  lat: params.mode === "point" && params.lat ? params.lat : (params.lat_min + params.lat_max) / 2,
+                  lon: params.mode === "point" && params.lon ? params.lon : (params.lon_min + params.lon_max) / 2,
+                  name: "Selected Location"
+                }}
+              />
+            </TabsContent>
+            
+            <TabsContent value="satellite" className="space-y-6">
+              <SatelliteLayersPanel 
+                selectedLayers={satelliteLayers}
+                onLayersChange={setSatelliteLayers}
+                location={{
+                  lat: params.mode === "point" && params.lat ? params.lat : (params.lat_min + params.lat_max) / 2,
+                  lon: params.mode === "point" && params.lon ? params.lon : (params.lon_min + params.lon_max) / 2
+                }}
+                targetDate={{
+                  year: params.year,
+                  month: params.month,
+                  day: params.day
+                }}
+              />
+            </TabsContent>
+            
+            <TabsContent value="export" className="space-y-6">
+              <PDFReportGenerator 
+                weatherData={weatherData}
+                location={{
+                  lat: params.mode === "point" && params.lat ? params.lat : (params.lat_min + params.lat_max) / 2,
+                  lon: params.mode === "point" && params.lon ? params.lon : (params.lon_min + params.lon_max) / 2,
+                  name: "Selected Location"
+                }}
+              />
+              <div className="pt-6">
+                <DataExport data={weatherData} onImport={handleImportData}/>
+              </div>
+            </TabsContent>
+          </Tabs>
         ) : (
           <div className="flex items-center justify-center py-12 md:py-20">
             <div className="text-center space-y-3 px-4">

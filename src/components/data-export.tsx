@@ -71,9 +71,11 @@ export function DataExport({ data, onImport }: DataExportProps) {
       rows.push(`Historical Precipitation Avg,${pointData.historical_baseline.precipitation_avg}`)
     }
 
-    // Trend
-    rows.push(`Very Hot Increasing,${data.trend.very_hot_increasing}`)
-    rows.push(`Change Per Decade,${data.trend.change_per_decade}`)
+    // Trend (if available)
+    if (data.trend) {
+      rows.push(`Very Hot Increasing,${data.trend.very_hot_increasing}`)
+      rows.push(`Change Per Decade,${data.trend.change_per_decade}`)
+    }
     rows.push(`Years Analyzed,${data.years_analyzed}`)
 
     return rows.join("\n")
