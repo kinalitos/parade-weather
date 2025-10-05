@@ -1,3 +1,8 @@
+export interface HistoricalBaseline {
+  temp_max_avg?: number;
+  precipitation_avg?: number;
+}
+
 export interface PointWeatherData {
   type: "point"
   location: {
@@ -15,7 +20,7 @@ export interface PointWeatherData {
     very_wet: number
     very_windy: number
   }
-  trend: {
+  trend?: {
     very_hot_increasing: boolean
     change_per_decade: number
   }
@@ -81,6 +86,9 @@ export interface RegionWeatherData {
 }
 
 export type WeatherData = PointWeatherData | RegionWeatherData
+
+// Alias for compatibility - RegionData is the same as RegionWeatherData
+export type RegionData = RegionWeatherData
 
 
 export interface PowerAPIResponse {

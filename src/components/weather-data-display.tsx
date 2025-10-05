@@ -215,16 +215,22 @@ export function WeatherDataDisplay({ data }: WeatherDataDisplayProps) {
 
           <Card className="p-3 md:p-6 border-border bg-card col-span-2 lg:col-span-1">
             <p className="text-[10px] md:text-xs text-muted-foreground mb-1 md:mb-2">Climate Trend</p>
-            <div className="flex items-center gap-2 mb-1 md:mb-2">
-              <TrendingUp className="h-3.5 md:h-5 w-3.5 md:w-5 text-primary" />
-              <span className="text-sm md:text-lg font-semibold text-foreground">
-                {data.trend.very_hot_increasing ? "Increasing" : "Decreasing"}
-              </span>
-            </div>
-            <p className="text-[10px] md:text-sm text-muted-foreground">
-              <span className="font-mono text-foreground">{formatPercentage(data.trend.change_per_decade)}</span> per
-              decade
-            </p>
+            {data.trend ? (
+              <>
+                <div className="flex items-center gap-2 mb-1 md:mb-2">
+                  <TrendingUp className="h-3.5 md:h-5 w-3.5 md:w-5 text-primary" />
+                  <span className="text-sm md:text-lg font-semibold text-foreground">
+                    {data.trend.very_hot_increasing ? "Increasing" : "Decreasing"}
+                  </span>
+                </div>
+                <p className="text-[10px] md:text-sm text-muted-foreground">
+                  <span className="font-mono text-foreground">{formatPercentage(data.trend.change_per_decade)}</span> per
+                  decade
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">No trend data available</p>
+            )}
           </Card>
         </div>
       </div>

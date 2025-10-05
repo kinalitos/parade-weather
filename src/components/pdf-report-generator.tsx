@@ -472,10 +472,26 @@ export function PDFReportGenerator({ weatherData, location }: PDFReportGenerator
     yPos += 20
     
     // Table
+    const getHistoricalTemp = () => {
+      if (weatherData.type === 'point') {
+        return weatherData.historical_baseline?.temp_max_avg?.toFixed(1) || "N/A"
+      } else {
+        return weatherData.regional_stats?.temp_max_avg?.toFixed(1) || "N/A"
+      }
+    }
+    
+    const getHistoricalPrecip = () => {
+      if (weatherData.type === 'point') {
+        return weatherData.historical_baseline?.precipitation_avg?.toFixed(1) || "N/A"
+      } else {
+        return weatherData.regional_stats?.precipitation_avg?.toFixed(1) || "N/A"
+      }
+    }
+    
     const tableData = [
       ["Parameter", "Historical Average", "Projected Change", "Risk Level"],
-      ["Temperature (°C)", `${weatherData.historical_baseline?.temp_max_avg?.toFixed(1) || "N/A"}`, `${weatherData.trend?.change_per_decade?.toFixed(1) || "0.0"}/decade`, getRiskLevel()],
-      ["Precipitation (mm)", `${weatherData.historical_baseline?.precipitation_avg?.toFixed(1) || "N/A"}`, "Variable", (weatherData.probabilities.very_wet || 0) > 0.3 ? "HIGH" : "MODERATE"],
+      ["Temperature (°C)", getHistoricalTemp(), `${weatherData.trend?.change_per_decade?.toFixed(1) || "0.0"}/decade`, getRiskLevel()],
+      ["Precipitation (mm)", getHistoricalPrecip(), "Variable", (weatherData.probabilities.very_wet || 0) > 0.3 ? "HIGH" : "MODERATE"],
       ["Extreme Heat Prob.", `Historical baseline`, `${Math.round((weatherData.probabilities.very_hot || 0) * 100)}%`, (weatherData.probabilities.very_hot || 0) > 0.4 ? "HIGH" : "MODERATE"]
     ]
     
