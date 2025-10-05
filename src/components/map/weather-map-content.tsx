@@ -87,43 +87,43 @@ function HeatmapLayer({
 }) {
   const map = useMap();
 
-  useEffect(() => {
-    if (!data || data.length === 0) return;
-
-    // Find min/max for color scale
-    const precips = data.map(d => d.precip_avg);
-    const minPrecip = Math.min(...precips);
-    const maxPrecip = Math.max(...precips);
-    const precipRange = maxPrecip - minPrecip;
-
-    // Color scale function
-    const getColor = (value: number) => {
-      const normalized = precipRange > 0 ? (value - minPrecip) / precipRange : 0.5;
-
-      if (normalized < 0.2) return '#440154';  // Dark purple
-      if (normalized < 0.4) return '#31688e';  // Blue
-      if (normalized < 0.6) return '#35b779';  // Green
-      if (normalized < 0.8) return '#fde724';  // Yellow
-      return '#cc0000';  // Red
-    };
-
-    // Create circle markers for each point
-    const circles: L.Circle[] = data.map(point => {
-      return L.circle([point.lat, point.lon], {
-        radius: 2500,  // 25km radius
-        fillColor: getColor(point.precip_avg),
-        fillOpacity: 0.6,
-        color: getColor(point.precip_avg),
-        weight: 2,
-        opacity: 0.8
-      }).addTo(map);
-    });
-
-    // Cleanup on unmount
-    return () => {
-      circles.forEach(circle => map.removeLayer(circle));
-    };
-  }, [data, map]);
+  // useEffect(() => {
+  //   if (!data || data.length === 0) return;
+  //
+  //   // Find min/max for color scale
+  //   const precips = data.map(d => d.precip_avg);
+  //   const minPrecip = Math.min(...precips);
+  //   const maxPrecip = Math.max(...precips);
+  //   const precipRange = maxPrecip - minPrecip;
+  //
+  //   // Color scale function
+  //   const getColor = (value: number) => {
+  //     const normalized = precipRange > 0 ? (value - minPrecip) / precipRange : 0.5;
+  //
+  //     if (normalized < 0.2) return '#440154';  // Dark purple
+  //     if (normalized < 0.4) return '#31688e';  // Blue
+  //     if (normalized < 0.6) return '#35b779';  // Green
+  //     if (normalized < 0.8) return '#fde724';  // Yellow
+  //     return '#cc0000';  // Red
+  //   };
+  //
+  //   // Create circle markers for each point
+  //   const circles: L.Circle[] = data.map(point => {
+  //     return L.circle([point.lat, point.lon], {
+  //       radius: 2500,  // 25km radius
+  //       fillColor: getColor(point.precip_avg),
+  //       fillOpacity: 0.6,
+  //       color: getColor(point.precip_avg),
+  //       weight: 2,
+  //       opacity: 0.8
+  //     }).addTo(map);
+  //   });
+  //
+  //   // Cleanup on unmount
+  //   return () => {
+  //     circles.forEach(circle => map.removeLayer(circle));
+  //   };
+  // }, [data, map]);
 
   return null;
 }
