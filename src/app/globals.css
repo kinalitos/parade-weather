@@ -8,10 +8,18 @@
   /* Light beige/tan background, muted blues, coral/orange accents, soft greens */
 
   --background: oklch(0.97 0.01 75); /* Light beige background */
+  --soft-background-3: #FBECCB;
+  --background-4: #E6CCB2;
+  --background-5: #EEF0DB;
   --foreground: oklch(0.35 0.02 240); /* Dark gray-brown text */
+  --tertiary: #FCF3DE;
   --card: oklch(1 0 0); /* White cards */
+  --card2: #F7F8ED;
+  --card3: #FFFCE0;
+  --card4: #FBECCB;
   --card-foreground: oklch(0.35 0.02 240);
   --popover: oklch(1 0 0);
+  --soft-background: #F2E9E4;
   --popover-foreground: oklch(0.35 0.02 240);
   --primary: oklch(0.58 0.08 210); /* Muted blue (water color) */
   --primary-foreground: oklch(1 0 0);
@@ -43,38 +51,48 @@
 }
 
 .dark {
-  --background: oklch(0.12 0 0);
-  --foreground: oklch(0.95 0 0);
-  --card: oklch(0.16 0 0);
-  --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.16 0 0);
-  --popover-foreground: oklch(0.95 0 0);
-  --primary: oklch(0.65 0.25 265);
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.2 0 0);
-  --secondary-foreground: oklch(0.85 0 0);
-  --muted: oklch(0.18 0 0);
-  --muted-foreground: oklch(0.6 0 0);
-  --accent: oklch(0.22 0 0);
-  --accent-foreground: oklch(0.95 0 0);
-  --destructive: oklch(0.55 0.22 25);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.24 0 0);
-  --input: oklch(0.24 0 0);
-  --ring: oklch(0.65 0.25 265);
-  --chart-1: oklch(0.65 0.25 265);
-  --chart-2: oklch(0.7 0.18 195);
-  --chart-3: oklch(0.6 0.2 240);
-  --chart-4: oklch(0.75 0.2 85);
-  --chart-5: oklch(0.7 0.22 320);
-  --sidebar: oklch(0.16 0 0);
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.65 0.25 265);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.22 0 0);
-  --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-border: oklch(0.24 0 0);
-  --sidebar-ring: oklch(0.65 0.25 265);
+  /* Dark theme - match the attached mockups using the requested palette */
+    --background: #23261F; /* dark olive-ish background to match mockups */
+    --foreground: #D3D3D3; /* soft gray text */
+    --tertiary: #25221D;
+    --soft-background: #21241D;
+    --background-4: #4D3A25;
+    --background-5: #262819;
+    --soft-background-2: #201F08;
+    --soft-background-3: #2F270C;
+    --card: #3F362F; /* dark warm surface */
+    --card2: #21221A;
+    --card3: #201F08;
+    --card4: #2F270C;
+    --card-foreground: #D3D3D3;
+    --popover: #34302A;
+    --popover-foreground: #D3D3D3;
+    --primary: #6B8E7A; /* muted teal */
+    --primary-foreground: #FFFFFF;
+    --secondary: #4A5D23; /* olive accents */
+    --secondary-foreground: #D3D3D3;
+    --muted: #8B7E66; /* warm taupe */
+    --muted-foreground: #D3D3D3;
+    --accent: #8B7E66;
+    --accent-foreground: #D3D3D3;
+    --destructive: #B24F3A;
+    --destructive-foreground: #FFFFFF;
+    --border: #362D26;
+    --input: #362D26;
+    --ring: #6B8E7A;
+    --chart-1: #6B8E7A;
+    --chart-2: #4A5D23;
+    --chart-3: #8B7E66;
+    --chart-4: #4A5D23;
+    --chart-5: #D3D3D3;
+    --sidebar: #2F2B26;
+    --sidebar-foreground: #D3D3D3;
+    --sidebar-primary: #6B8E7A;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #4A5D23;
+    --sidebar-accent-foreground: #D3D3D3;
+    --sidebar-border: #362D26;
+    --sidebar-ring: #6B8E7A;
 }
 
 @theme inline {
@@ -123,5 +141,44 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Quick utility: bg-soft-background (uses CSS variable --soft-background) */
+@layer utilities {
+  .bg-soft-background {
+    background-color: var(--soft-background) !important;
+  }
+
+  .bg-soft-background-3 {
+    background-color: var(--soft-background-3) !important;
+  }
+
+  .bg-background-4 {
+    background-color: var(--background-4) !important;
+  }
+
+  .bg-background-5 {
+    background-color: var(--background-5) !important;
+  }
+
+  .bg-card2 {
+    background-color: var(--card2) !important;
+  }
+
+  .bg-card3 {
+    background-color: var(--card3) !important;
+  }
+
+  .bg-card4 {
+    background-color: var(--card4) !important;
+  }
+
+  .dark .bg-soft-background {
+    background-color: var(--background-2, rgba(0,0,0,0.06)) !important;
+  }
+
+  .dark .bg-soft-background-3 {
+    background-color: var(--soft-background-3, rgba(0,0,0,0.06)) !important;
   }
 }
