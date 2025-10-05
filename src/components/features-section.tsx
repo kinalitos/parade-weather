@@ -24,7 +24,7 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="py-24 md:py-32 bg-[hsl(66,42%,95%)]">
+    <section id="features" className="py-24 md:py-32 bg-popover">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16 space-y-4">
           <h2 className="text-3xl md:text-5xl font-light tracking-tight text-balance">

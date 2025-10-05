@@ -7,7 +7,7 @@ export function StatsSection() {
   ]
 
   return (
-    <section className="py-24 bg-[hsl(54,100%,94%)]">
+    <section className="py-24 background transition-all duration-400">
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 max-w-5xl mx-auto">
           {stats.map((stat, index) => (

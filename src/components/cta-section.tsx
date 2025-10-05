@@ -4,7 +4,7 @@ import Link from "next/link"
 
 export function CTASection() {
   return (
-    <section className="py-24 md:py-32 bg-[hsl(54,100%,94%)]">
+    <section className="py-24 md:py-32 bg-soft-background-2">
       <div className="container mx-auto px-6">
         <div className="max-w-3xl mx-auto text-center space-y-8">
           <h2 className="text-4xl md:text-6xl font-light tracking-tight text-balance">

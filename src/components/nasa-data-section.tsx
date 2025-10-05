@@ -35,7 +35,7 @@ export function NasaDataSection() {
   ]
 
   return (
-    <section id="nasa-data" className="py-32 bg-[hsl(42,85%,93%)]">
+    <section id="nasa-data" className="py-32 bg-tertiary">
       <div className="container mx-auto px-6">
         <div className="max-w-3xl mx-auto text-center mb-20 space-y-4">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
@@ -54,7 +54,7 @@ export function NasaDataSection() {
           {dataSources.map((source, index) => (
             <div
               key={index}
-              className="p-6 rounded-xl bg-[hsl(66,42%,95%)] border border-border/40 hover:border-border hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer space-y-3"
+              className="p-6 rounded-xl bg-card2 border border-border/40 hover:border-border hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer space-y-3"
             >
               <div className="flex items-start justify-between">
                 <h3 className="font-medium">{source.name}</h3>

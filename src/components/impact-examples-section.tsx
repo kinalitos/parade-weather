@@ -29,7 +29,7 @@ export function ImpactExamplesSection() {
   ]
 
   return (
-    <section id="impact" className="py-32 bg-[hsl(66,42%,90%)]">
+    <section id="impact" className="py-32 bg-background-5">
       <div className="container mx-auto px-6">
         <div className="max-w-3xl mx-auto text-center mb-20 space-y-4">
           <h2 className="text-4xl md:text-5xl font-light tracking-tight text-balance">Real-world impact stories</h2>
@@ -40,7 +40,7 @@ export function ImpactExamplesSection() {
 
         <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {examples.map((example, index) => (
-            <div key={index} className="p-8 rounded-2xl bg-[hsl(42,85%,89%)] border border-border/40 space-y-6">
+            <div key={index} className="p-8 rounded-2xl bg-card4 border border-border/40 space-y-6">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                 <example.icon className="w-6 h-6 text-primary" />
               </div>

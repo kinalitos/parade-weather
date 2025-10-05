@@ -2,7 +2,7 @@ import { MapPin, Map } from "lucide-react"
 
 export function AnalysisModesSection() {
   return (
-    <section className="py-32 bg-[#f2e9e4]">
+    <section className="py-32 bg-soft-background">
       <div className="container mx-auto px-6">
         <div className="max-w-3xl mx-auto text-center mb-20 space-y-4">
           <h2 className="text-4xl md:text-5xl font-light tracking-tight text-balance">Flexible analysis modes</h2>

@@ -30,7 +30,7 @@ export function PdfReportsSection() {
   ]
 
   return (
-    <section id="reports" className="py-32 bg-[hsl(42,85%,89%)]">
+    <section id="reports" className="py-32 bg-soft-background-3">
       <div className="container mx-auto px-6">
         <div className="max-w-3xl mx-auto text-center mb-20 space-y-4">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
@@ -46,7 +46,7 @@ export function PdfReportsSection() {
 
         <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto mb-12">
           {reportTypes.map((report, index) => (
-            <div key={index} className="p-8 rounded-2xl bg-[hsl(66,42%,90%)] border border-border/40 space-y-4">
+            <div key={index} className="p-8 rounded-2xl bg-background-5 border border-border/40 space-y-4">
               <div className="flex items-start justify-between">
                 <h3 className="text-xl font-medium">{report.name}</h3>
                 <span className="text-xs px-2 py-1 rounded bg-primary/10 text-primary">{report.theme}</span>
