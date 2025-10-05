@@ -347,60 +347,54 @@ async function fetchRegionWeatherData(
   // Probabilidades según proyección usando media diaria histórica
   const yearsAhead = targetYear - endYear;
 
-  // Promedio histórico para el día específico
   // Promedio histórico para el día específico de toda la región
   const dailyTemps: number[] = [];
   for (let i = 0; i < tempsAll.length; i++) {
     dailyTemps.push(...tempsAll[i]); // ya filtrados por mes/día dentro del fetch
   }
 
-  // Si no hay datos, fallback al promedio anual
+  // Fallback al promedio anual si no hay datos diarios
   const temp_avg_daily =
     dailyTemps.length > 0
       ? dailyTemps.reduce((a, b) => a + b, 0) / dailyTemps.length
       : temp_max_avg;
 
+  // Proyección de temperatura para el targetYear
   const temp_projection = temp_avg_daily + slope_per_year * yearsAhead;
-
   const precip_projection = precipitation_avg;
 
-  // Determinar rangos históricos de temperatura
-  const tempsAllYears = yearlyData.map(d => d.temp_max);
-  const tempMax = Math.max(...tempsAllYears);
-  const tempMin = Math.min(...tempsAllYears);
+  // Determinar rangos históricos **promedio por región**
+  const regionalTemps = tempsAll.flat();
+  const tempMax = Math.max(...regionalTemps);
+  const tempMin = Math.min(...regionalTemps);
   const tempRange = tempMax - tempMin;
 
-  // Very hot: cuánto supera la proyección el máximo histórico
+  // Very hot / cold normalizado por rango regional
   const very_hot = Number(
-    Math.min(1, Math.max(0, (temp_projection - tempMax) / tempRange + 0.5)).toFixed(2)
+    Math.min(1, Math.max(0, (temp_projection - temp_avg_daily) / tempRange + 0.5)).toFixed(2)
   );
 
-  // Very cold: cuánto cae la proyección por debajo del mínimo histórico
   const very_cold = Number(
-    Math.min(1, Math.max(0, (tempMin - temp_projection) / tempRange + 0.5)).toFixed(2)
+    Math.min(1, Math.max(0, (temp_avg_daily - temp_projection) / tempRange + 0.5)).toFixed(2)
   );
 
-  // Precipitación normalizada por máximo histórico
+  // Precipitación normalizada por máximo histórico regional
   const precipMax = Math.max(...precsAll.flat());
-  const very_wet = Number(
-    Math.min(1, precip_projection / precipMax).toFixed(2)
-  );
+  const very_wet = Number(Math.min(1, precip_projection / precipMax).toFixed(2));
 
-  // Viento normalizado por máximo histórico
+  // Viento normalizado por máximo histórico regional
   const windMax = Math.max(...windAll.flat());
-  const very_windy = Number(
-    Math.min(1, wind_avg / windMax).toFixed(2)
-  );
+  const very_windy = Number(Math.min(1, wind_avg / windMax).toFixed(2));
 
   // Very uncomfortable combina temperatura y viento normalizados
   const very_uncomfortable = Number(
     Math.min(
       1,
-      (temp_projection - tempMin) / tempRange * 0.6 + wind_avg / windMax * 0.4
+      ((temp_projection - tempMin) / tempRange) * 0.6 + (wind_avg / windMax) * 0.4
     ).toFixed(2)
   );
 
-  // Probabilidades finales
+  // Probabilidades finales para la región
   const probabilities = {
     very_hot,
     very_cold,
@@ -408,6 +402,7 @@ async function fetchRegionWeatherData(
     very_windy,
     very_uncomfortable,
   };
+
 
 
 
