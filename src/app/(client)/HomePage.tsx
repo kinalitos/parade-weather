@@ -325,10 +325,6 @@ export function HomePage() {
                   <Wheat className="h-4 w-4" />
                   <span className="hidden sm:inline">Agriculture</span>
                 </TabsTrigger>
-                <TabsTrigger value="satellite" className="flex items-center gap-2">
-                  <Satellite className="h-4 w-4" />
-                  <span className="hidden sm:inline">Satellite</span>
-                </TabsTrigger>
                 <TabsTrigger value="export" className="flex items-center gap-2">
                   <RefreshCw className="h-4 w-4" />
                   <span className="hidden sm:inline">Export</span>
