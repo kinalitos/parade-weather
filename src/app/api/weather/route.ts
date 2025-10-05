@@ -118,6 +118,37 @@ async function fetchPointWeatherData(
     very_wet: Number((Math.min(1, precipitation_avg / 10)).toFixed(2)),
     very_windy: Number((Math.min(1, wind_avg / 10)).toFixed(2)),
   };
+  
+  // --- Encontrar el año histórico más cercano ---
+  let minDiff = Infinity;
+  let closestYear = startYear;
+  for (let y = startYear; y <= endYear; y++) {
+    const avgTemp = yearlyData.find(d => d.year === y)?.temp_max || 0;
+    const diff = Math.abs(avgTemp - temp_projection);
+    if (diff < minDiff) {
+      minDiff = diff;
+      closestYear = y;
+    }
+  }
+
+  if (closestYear < 2000) closestYear = 2005;
+
+  const proxyYear = closestYear;
+  const proxyMonth = month.toString().padStart(2, "0");
+  const proxyDay = day > 28 ? "01" : day.toString().padStart(2, "0");
+
+  // Pequeño bbox alrededor del punto para el mapa (0.05° aprox)
+  const delta = 0.025;
+  const worldview_layer = {
+    url: `https://wvs.earthdata.nasa.gov/api/v1/snapshot?REQUEST=GetSnapshot&FORMAT=image/png` +
+         `&BBOX=${location.lon - delta},${location.lat - delta},${location.lon + delta},${location.lat + delta}` +
+         `&CRS=EPSG:4326` +
+         `&LAYERS=MODIS_Terra_CorrectedReflectance_TrueColor` +
+         `&WIDTH=512&HEIGHT=512` +
+         `&TIME=${proxyYear}-${proxyMonth}-${proxyDay}`,
+    layer: "MODIS_Terra_CorrectedReflectance_TrueColor",
+  };
+  
 
   return {
     type: "point",
@@ -127,6 +158,7 @@ async function fetchPointWeatherData(
     trend: { very_hot_increasing: slope_per_year > 0, change_per_decade },
     historical_baseline: { temp_max_avg, precipitation_avg },
     years_analyzed: `${startYear}-${endYear}`,
+    worldview_layer
   };
 }
 

@@ -24,6 +24,10 @@ export interface PointWeatherData {
     precipitation_avg: number
   }
   years_analyzed: string
+  worldview_layer?: {
+    url: string;
+    layer: string;
+  };
 }
 
 export interface RegionWeatherData {
