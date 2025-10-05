@@ -365,18 +365,21 @@ async function fetchRegionWeatherData(
 
   // Determinar rangos históricos **promedio por región**
   const regionalTemps = tempsAll.flat();
+  // Rangos históricos de temperatura de toda la región
   const tempMax = Math.max(...regionalTemps);
   const tempMin = Math.min(...regionalTemps);
   const tempRange = tempMax - tempMin;
 
-  // Very hot / cold normalizado por rango regional
+  // Very hot: cuánto se acerca la proyección al máximo histórico
   const very_hot = Number(
-    Math.min(1, Math.max(0, (temp_projection - temp_avg_daily) / tempRange + 0.5)).toFixed(2)
+    Math.min(1, Math.max(0, (temp_projection - tempMin) / tempRange)).toFixed(2)
   );
 
+  // Very cold: cuánto se acerca la proyección al mínimo histórico
   const very_cold = Number(
-    Math.min(1, Math.max(0, (temp_avg_daily - temp_projection) / tempRange + 0.5)).toFixed(2)
+    Math.min(1, Math.max(0, (tempMax - temp_projection) / tempRange)).toFixed(2)
   );
+
 
   // Precipitación normalizada por máximo histórico regional
   const precipMax = Math.max(...precsAll.flat());
