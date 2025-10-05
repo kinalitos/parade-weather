@@ -113,12 +113,42 @@ async function fetchPointWeatherData(
   const temp_projection = temp_max_avg + slope_per_year * yearsAhead;
 
   const probabilities = {
-    very_hot: Number((Math.min(1, Math.max(0, (temp_projection - temp_max_avg) / 5 + 0.4))).toFixed(2)),
-    very_cold: Number((Math.min(1, Math.max(0, (temp_max_avg - temp_projection) / 5))).toFixed(2)),
-    very_wet: Number((Math.min(1, precipitation_avg / 10)).toFixed(2)),
-    very_windy: Number((Math.min(1, wind_avg / 10)).toFixed(2)),
+    // Sensibilidad x3 para very_hot/cold
+    very_hot: Number(
+      Math.min(
+        1,
+        Math.max(0, (temp_projection - temp_max_avg) * 3)
+      ).toFixed(2)
+    ),
+    very_cold: Number(
+      Math.min(
+        1,
+        Math.max(0, (temp_max_avg - temp_projection) * 3)
+      ).toFixed(2)
+    ),
+    // Sensibilidad x2 para precipitación y viento
+    very_wet: Number(
+      Math.min(
+        1,
+        precipitation_avg / 5 
+      ).toFixed(2)
+    ),
+    very_windy: Number(
+      Math.min(
+        1,
+        wind_avg / 5 
+      ).toFixed(2)
+    ),
+    // very_uncomfortable combina temp y viento con mayor factor
+    very_uncomfortable: Number(
+      Math.min(
+        1,
+        ((temp_projection - temp_max_avg) * 2 + wind_avg / 4)
+      ).toFixed(2)
+    ),
   };
-  
+
+
   // --- Encontrar el año histórico más cercano ---
   let minDiff = Infinity;
   let closestYear = startYear;
@@ -141,14 +171,14 @@ async function fetchPointWeatherData(
   const delta = 0.025;
   const worldview_layer = {
     url: `https://wvs.earthdata.nasa.gov/api/v1/snapshot?REQUEST=GetSnapshot&FORMAT=image/png` +
-         `&BBOX=${location.lon - delta},${location.lat - delta},${location.lon + delta},${location.lat + delta}` +
-         `&CRS=EPSG:4326` +
-         `&LAYERS=MODIS_Terra_CorrectedReflectance_TrueColor` +
-         `&WIDTH=512&HEIGHT=512` +
-         `&TIME=${proxyYear}-${proxyMonth}-${proxyDay}`,
+      `&BBOX=${location.lon - delta},${location.lat - delta},${location.lon + delta},${location.lat + delta}` +
+      `&CRS=EPSG:4326` +
+      `&LAYERS=MODIS_Terra_CorrectedReflectance_TrueColor` +
+      `&WIDTH=512&HEIGHT=512` +
+      `&TIME=${proxyYear}-${proxyMonth}-${proxyDay}`,
     layer: "MODIS_Terra_CorrectedReflectance_TrueColor",
   };
-  
+
 
   return {
     type: "point",
@@ -298,41 +328,70 @@ async function fetchRegionWeatherData(
   const precip_projection = precipitation_avg;
 
   const probabilities = {
-    very_hot: Number(Math.min(1, Math.max(0, (temp_projection - temp_max_avg) / 5 + 0.4)).toFixed(2)),
-    very_cold: Number(Math.min(1, Math.max(0, (temp_max_avg - temp_projection) / 5)).toFixed(2)),
-    very_wet: Number(Math.min(1, precip_projection / 10).toFixed(2)),
-    very_windy: Number(Math.min(1, wind_avg / 10).toFixed(2)),
-    very_uncomfortable: Number(Math.min(1, (temp_projection + wind_avg) / 50).toFixed(2)),
+    // Sensibilidad x3 para very_hot/cold
+    very_hot: Number(
+      Math.min(
+        1,
+        Math.max(0, (temp_projection - temp_max_avg) * 3)
+      ).toFixed(2)
+    ),
+    very_cold: Number(
+      Math.min(
+        1,
+        Math.max(0, (temp_max_avg - temp_projection) * 3)
+      ).toFixed(2)
+    ),
+    // Sensibilidad x2 para precipitación y viento
+    very_wet: Number(
+      Math.min(
+        1,
+        precipitation_avg / 5 // si antes era /10, ahora /5 → valores mayores
+      ).toFixed(2)
+    ),
+    very_windy: Number(
+      Math.min(
+        1,
+        wind_avg / 5 // igual, más sensible
+      ).toFixed(2)
+    ),
+    // very_uncomfortable combina temp y viento con mayor factor
+    very_uncomfortable: Number(
+      Math.min(
+        1,
+        ((temp_projection - temp_max_avg) * 2 + wind_avg / 4)
+      ).toFixed(2)
+    ),
   };
 
- /**
-  *  const grid_points = gridPoints.map((point, i) => {
-    const temps = tempsAll[i];
-    const precs = precsAll[i];
-    const temp_avg = temps.length > 0 ? +(temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(2) : 0;
-    const precip_avg = precs.length > 0 ? +(precs.reduce((a, b) => a + b, 0) / precs.length).toFixed(2) : 0;
-    return { lat: point.lat, lon: point.lon, temp_avg, precip_avg };
-  });
 
-  let closestYear = startYear;
-let minDiff = Infinity;
-// Iteramos sobre cada año histórico
-for (let y = startYear; y <= endYear; y++) {
-  const yearlyTemps: number[] = [];
-  for (let i = 0; i < gridPoints.length; i++) {
-    const tempsPoint = tempsAll[i];
-    if (tempsPoint.length > 0) {
-      yearlyTemps.push(tempsPoint.reduce((a, b) => a + b, 0) / tempsPoint.length);
-    }
-  }
-  const avgTemp = yearlyTemps.reduce((a, b) => a + b, 0) / yearlyTemps.length;
-  const diff = Math.abs(avgTemp - temp_projection);
-  if (diff < minDiff) {
-    minDiff = diff;
-    closestYear = y;
-  }
-}
-  */
+  /**
+   *  const grid_points = gridPoints.map((point, i) => {
+     const temps = tempsAll[i];
+     const precs = precsAll[i];
+     const temp_avg = temps.length > 0 ? +(temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(2) : 0;
+     const precip_avg = precs.length > 0 ? +(precs.reduce((a, b) => a + b, 0) / precs.length).toFixed(2) : 0;
+     return { lat: point.lat, lon: point.lon, temp_avg, precip_avg };
+   });
+ 
+   let closestYear = startYear;
+ let minDiff = Infinity;
+ // Iteramos sobre cada año histórico
+ for (let y = startYear; y <= endYear; y++) {
+   const yearlyTemps: number[] = [];
+   for (let i = 0; i < gridPoints.length; i++) {
+     const tempsPoint = tempsAll[i];
+     if (tempsPoint.length > 0) {
+       yearlyTemps.push(tempsPoint.reduce((a, b) => a + b, 0) / tempsPoint.length);
+     }
+   }
+   const avgTemp = yearlyTemps.reduce((a, b) => a + b, 0) / yearlyTemps.length;
+   const diff = Math.abs(avgTemp - temp_projection);
+   if (diff < minDiff) {
+     minDiff = diff;
+     closestYear = y;
+   }
+ }
+   */
 
 
   // --- Encontrar el año histórico más cercano ---
@@ -395,7 +454,7 @@ for (let y = startYear; y <= endYear; y++) {
     trend: { very_hot_increasing: slope_per_year > 0, change_per_decade },
     grid_points_analyzed: gridPoints.length,
     years_analyzed: `${startYear}-${endYear}`,
-    worldview_layer, 
+    worldview_layer,
   };
 
 }
