@@ -1,7 +1,16 @@
 "use client"
 
 import { useRef, useEffect } from "react";
-import { MapContainer, TileLayer, WMSTileLayer, FeatureGroup, Marker, Rectangle, useMapEvents, useMap } from 'react-leaflet';
+import {
+  MapContainer,
+  TileLayer,
+  WMSTileLayer,
+  FeatureGroup,
+  Marker,
+  Rectangle,
+  useMapEvents,
+  useMap
+} from 'react-leaflet';
 import { EditControl } from "react-leaflet-draw";
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -39,6 +48,7 @@ interface WeatherMapContentProps {
     lat: number;
     lon: number;
     temp_avg: number;
+    precip_avg: number;
   }>;
   worldviewLayer?: {
     url: string;
@@ -177,6 +187,8 @@ function WeatherMapContent({
     return [20, 0];
   };
 
+  console.log({ worldviewLayer })
+
   return (
     <div className="h-[280px] md:h-[500px] w-full">
       <MapContainer
@@ -199,22 +211,25 @@ function WeatherMapContent({
           return (
             <WMSTileLayer
               url="https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi"
-              layers={worldviewLayer.layer}
+              params={{
+                layers: worldviewLayer.layer,
+              }}
+              // @ts-ignore
+              time={time}
               format="image/png"
               transparent={true}
               version="1.3.0"
-              time={time}
               opacity={0.7}
             />
           );
         })()}
 
-        <CenterUpdater center={getCenter()} />
-        <ZoomHandler onZoomChange={onZoomChange} />
+        <CenterUpdater center={getCenter()}/>
+        <ZoomHandler onZoomChange={onZoomChange}/>
 
         {/* Render heatmap if data is available */}
         {heatmapData && heatmapData.length > 0 && (
-          <HeatmapLayer data={heatmapData} />
+          <HeatmapLayer data={heatmapData}/>
         )}
 
         <FeatureGroup ref={featureGroupRef}>
@@ -238,7 +253,7 @@ function WeatherMapContent({
 
         {/* Show selected point marker */}
         {selectionMode === "point" && selectedPoint && (
-          <Marker position={[selectedPoint.lat, selectedPoint.lon]} />
+          <Marker position={[selectedPoint.lat, selectedPoint.lon]}/>
         )}
 
         {/* Show selected region rectangle */}

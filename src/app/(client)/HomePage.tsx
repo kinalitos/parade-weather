@@ -9,6 +9,7 @@ import { WeatherData } from "@/types"
 import { fetchWeatherData as fetchWeatherDataAPI } from "@/services/weather-api"
 import { WeatherMap } from "@/components/map/weather-map"
 import { useWeatherSearchParams } from "@/hooks/use-weather-params"
+import { APP_NAME } from "@/lib/constants"
 
 export function HomePage() {
   const { params, updateParams } = useWeatherSearchParams()
@@ -223,8 +224,8 @@ export function HomePage() {
         <div className="container mx-auto px-4 md:px-6 py-4 md:py-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">Climate Forecast</h1>
-              <p className="text-xs md:text-sm text-muted-foreground mt-1">Regional weather probability analysis</p>
+              <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">{APP_NAME}</h1>
+              <p className="text-xs md:text-sm text-muted-foreground mt-1">NASA-powered climate forecast analysis</p>
             </div>
             <div className="flex items-center gap-2">
               {loading && (
@@ -285,11 +286,7 @@ export function HomePage() {
                 ? weatherData.region.grid_points
                 : undefined
             }
-            worldviewLayer={
-              weatherData?.type === "region"
-                ? weatherData.worldview_layer
-                : undefined
-            }
+            worldviewLayer={weatherData?.worldview_layer}
           />
         </div>
       </div>

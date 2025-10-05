@@ -5,74 +5,8 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Download, Copy, FileJson, FileSpreadsheet, Upload, Check, ChevronDown, ChevronUp } from "lucide-react"
+import { PointWeatherData, RegionWeatherData, WeatherData } from "@/types";
 
-interface PointWeatherData {
-  type: "point"
-  location: {
-    lat: number
-    lon: number
-  }
-  target_date: {
-    year: number
-    month: number
-    day: number
-  }
-  probabilities: {
-    very_hot: number
-    very_cold: number
-    very_wet: number
-    very_windy: number
-  }
-  trend: {
-    very_hot_increasing: boolean
-    change_per_decade: number
-  }
-  historical_baseline: {
-    temp_max_avg: number
-    precipitation_avg: number
-  }
-  years_analyzed: string
-}
-
-interface RegionWeatherData {
-  type: "region"
-  region: {
-    bbox: {
-      lat_min: number
-      lat_max: number
-      lon_min: number
-      lon_max: number
-    }
-  }
-  target_date: {
-    year: number
-    month: number
-    day: number
-  }
-  probabilities: {
-    very_hot: number
-    very_cold: number
-    very_wet: number
-    very_windy: number
-    very_uncomfortable: number
-  }
-  regional_stats: {
-    temp_max_avg: number
-    temp_max_range: {
-      min: number
-      max: number
-    }
-    precipitation_avg: number
-  }
-  trend: {
-    very_hot_increasing: boolean
-    change_per_decade: number
-  }
-  grid_points_analyzed: number
-  years_analyzed: string
-}
-
-type WeatherData = PointWeatherData | RegionWeatherData
 
 interface DataExportProps {
   data: WeatherData

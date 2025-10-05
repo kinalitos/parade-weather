@@ -35,6 +35,7 @@ interface WeatherMapProps {
     lat: number;
     lon: number;
     temp_avg: number;
+    precip_avg: number;
   }>;
   worldviewLayer?: {
     url: string;
