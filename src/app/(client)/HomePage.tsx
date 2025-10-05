@@ -10,7 +10,7 @@ import { PDFReportGenerator } from "@/components/pdf-report-generator"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Loader2, RefreshCw, Shield, Wheat, Satellite, BarChart3 } from "lucide-react"
-import { WeatherData } from "@/types"
+import { WeatherData, RegionData } from "@/types"
 import { fetchWeatherData as fetchWeatherDataAPI } from "@/services/weather-api"
 import { WeatherMap } from "@/components/map/weather-map"
 import { useWeatherSearchParams } from "@/hooks/use-weather-params"
@@ -130,10 +130,10 @@ export function HomePage() {
     } else if (importedData.type === "region") {
       updateParams({
         mode: "region",
-        lat_min: importedData.region.bbox.lat_min,
-        lat_max: importedData.region.bbox.lat_max,
-        lon_min: importedData.region.bbox.lon_min,
-        lon_max: importedData.region.bbox.lon_max,
+        lat_min: importedData.region!.bbox.lat_min,
+        lat_max: importedData.region!.bbox.lat_max,
+        lon_min: importedData.region!.bbox.lon_min,
+        lon_max: importedData.region!.bbox.lon_max,
         year: importedData.target_date.year,
         month: importedData.target_date.month,
         day: importedData.target_date.day,
