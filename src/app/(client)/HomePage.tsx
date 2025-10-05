@@ -280,6 +280,16 @@ export function HomePage() {
             })}
             zoom={params.zoom}
             onZoomChange={(zoom) => updateParams({ zoom })}
+            heatmapData={
+              weatherData?.type === "region"
+                ? weatherData.region.grid_points
+                : undefined
+            }
+            worldviewLayer={
+              weatherData?.type === "region"
+                ? weatherData.worldview_layer
+                : undefined
+            }
           />
         </div>
       </div>

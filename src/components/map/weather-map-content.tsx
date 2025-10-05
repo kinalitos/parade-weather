@@ -1,11 +1,12 @@
 "use client"
 
 import { useRef, useEffect } from "react";
-import { MapContainer, TileLayer, FeatureGroup, Marker, Rectangle, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, WMSTileLayer, FeatureGroup, Marker, Rectangle, useMapEvents, useMap } from 'react-leaflet';
 import { EditControl } from "react-leaflet-draw";
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
+import 'leaflet.heat';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
@@ -34,6 +35,15 @@ interface WeatherMapContentProps {
   }) => void;
   zoom?: number;
   onZoomChange?: (zoom: number) => void;
+  heatmapData?: Array<{
+    lat: number;
+    lon: number;
+    temp_avg: number;
+  }>;
+  worldviewLayer?: {
+    url: string;
+    layer: string;
+  };
 }
 
 // Component to track zoom changes
@@ -59,6 +69,55 @@ function CenterUpdater({ center }: { center: [number, number] }) {
   return null;
 }
 
+// Discrete precipitation circles - no blur, clear colors
+function HeatmapLayer({
+  data
+}: {
+  data: Array<{ lat: number; lon: number; temp_avg: number; precip_avg: number }>
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!data || data.length === 0) return;
+
+    // Find min/max for color scale
+    const precips = data.map(d => d.precip_avg);
+    const minPrecip = Math.min(...precips);
+    const maxPrecip = Math.max(...precips);
+    const precipRange = maxPrecip - minPrecip;
+
+    // Color scale function
+    const getColor = (value: number) => {
+      const normalized = precipRange > 0 ? (value - minPrecip) / precipRange : 0.5;
+
+      if (normalized < 0.2) return '#440154';  // Dark purple
+      if (normalized < 0.4) return '#31688e';  // Blue
+      if (normalized < 0.6) return '#35b779';  // Green
+      if (normalized < 0.8) return '#fde724';  // Yellow
+      return '#cc0000';  // Red
+    };
+
+    // Create circle markers for each point
+    const circles: L.Circle[] = data.map(point => {
+      return L.circle([point.lat, point.lon], {
+        radius: 2500,  // 25km radius
+        fillColor: getColor(point.precip_avg),
+        fillOpacity: 0.6,
+        color: getColor(point.precip_avg),
+        weight: 2,
+        opacity: 0.8
+      }).addTo(map);
+    });
+
+    // Cleanup on unmount
+    return () => {
+      circles.forEach(circle => map.removeLayer(circle));
+    };
+  }, [data, map]);
+
+  return null;
+}
+
 function WeatherMapContent({
   selectionMode,
   selectedPoint,
@@ -67,6 +126,8 @@ function WeatherMapContent({
   onRegionSelect,
   zoom = 2,
   onZoomChange,
+  heatmapData,
+  worldviewLayer,
 }: WeatherMapContentProps) {
   const featureGroupRef = useRef<L.FeatureGroup>(null);
 
@@ -129,8 +190,32 @@ function WeatherMapContent({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
+        {/* NASA MODIS Satellite Imagery */}
+        {worldviewLayer && (() => {
+          // Extract TIME parameter from the snapshot URL
+          const timeMatch = worldviewLayer.url.match(/TIME=([^&]+)/);
+          const time = timeMatch ? timeMatch[1] : undefined;
+
+          return (
+            <WMSTileLayer
+              url="https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi"
+              layers={worldviewLayer.layer}
+              format="image/png"
+              transparent={true}
+              version="1.3.0"
+              time={time}
+              opacity={0.7}
+            />
+          );
+        })()}
+
         <CenterUpdater center={getCenter()} />
         <ZoomHandler onZoomChange={onZoomChange} />
+
+        {/* Render heatmap if data is available */}
+        {heatmapData && heatmapData.length > 0 && (
+          <HeatmapLayer data={heatmapData} />
+        )}
 
         <FeatureGroup ref={featureGroupRef}>
           <EditControl
@@ -163,7 +248,7 @@ function WeatherMapContent({
               [selectedRegion.lat_min, selectedRegion.lon_min],
               [selectedRegion.lat_max, selectedRegion.lon_max],
             ]}
-            pathOptions={{ color: 'red', fillOpacity: 0.2 }}
+            pathOptions={{ color: '#6366f1', fillOpacity: 0.1, weight: 3 }}
           />
         )}
       </MapContainer>

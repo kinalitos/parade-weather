@@ -31,6 +31,15 @@ interface WeatherMapProps {
   onDateChange: (date: { year: number; month: number; day: number }) => void;
   zoom?: number;
   onZoomChange?: (zoom: number) => void;
+  heatmapData?: Array<{
+    lat: number;
+    lon: number;
+    temp_avg: number;
+  }>;
+  worldviewLayer?: {
+    url: string;
+    layer: string;
+  };
 }
 
 // Dynamically import the map component with no SSR
