@@ -15,6 +15,7 @@ import { fetchWeatherData as fetchWeatherDataAPI } from "@/services/weather-api"
 import { WeatherMap } from "@/components/map/weather-map"
 import { useWeatherSearchParams } from "@/hooks/use-weather-params"
 import { APP_NAME } from "@/lib/constants"
+import { CitySearch } from "@/components/city-search"
 
 export function HomePage() {
   const { params, updateParams } = useWeatherSearchParams()
@@ -258,6 +259,24 @@ export function HomePage() {
       {/* Map Section */}
       <div className="border-b border-border">
         <div className="container mx-auto px-4 md:px-6 py-4 md:py-6">
+        
+          {/* City Search */}
+          <div className="mb-4 max-w-md">
+            <CitySearch
+              onCitySelect={(city) => {
+                updateParams({
+                  mode: "point",
+                  lat: city.lat,
+                  lon: city.lon,
+                  lat_min: city.bbox.lat_min,
+                  lat_max: city.bbox.lat_max,
+                  lon_min: city.bbox.lon_min,
+                  lon_max: city.bbox.lon_max,
+                })
+              }}
+            />
+          </div>
+
           <WeatherMap
             selectionMode={params.mode}
             onSelectionModeChange={handleModeChange}
