@@ -348,19 +348,19 @@ async function fetchRegionWeatherData(
   const yearsAhead = targetYear - endYear;
 
   // Promedio histórico para el día específico
-// Promedio histórico para el día específico de toda la región
-const dailyTemps: number[] = [];
-for (let i = 0; i < tempsAll.length; i++) {
-  dailyTemps.push(...tempsAll[i]); // ya filtrados por mes/día dentro del fetch
-}
+  // Promedio histórico para el día específico de toda la región
+  const dailyTemps: number[] = [];
+  for (let i = 0; i < tempsAll.length; i++) {
+    dailyTemps.push(...tempsAll[i]); // ya filtrados por mes/día dentro del fetch
+  }
 
-// Si no hay datos, fallback al promedio anual
-const temp_avg_daily =
-  dailyTemps.length > 0
-    ? dailyTemps.reduce((a, b) => a + b, 0) / dailyTemps.length
-    : temp_max_avg;
+  // Si no hay datos, fallback al promedio anual
+  const temp_avg_daily =
+    dailyTemps.length > 0
+      ? dailyTemps.reduce((a, b) => a + b, 0) / dailyTemps.length
+      : temp_max_avg;
 
-const temp_projection = temp_avg_daily + slope_per_year * yearsAhead;
+  const temp_projection = temp_avg_daily + slope_per_year * yearsAhead;
 
   const precip_projection = precipitation_avg;
 
