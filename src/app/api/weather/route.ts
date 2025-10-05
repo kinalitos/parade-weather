@@ -112,41 +112,59 @@ async function fetchPointWeatherData(
   const yearsAhead = targetYear - endYear;
   const temp_projection = temp_max_avg + slope_per_year * yearsAhead;
 
-  const probabilities = {
-    // Sensibilidad x3 para very_hot/cold
-    very_hot: Number(
-      Math.min(
-        1,
-        Math.max(0, (temp_projection - temp_max_avg) * 3)
-      ).toFixed(2)
-    ),
-    very_cold: Number(
-      Math.min(
-        1,
-        Math.max(0, (temp_max_avg - temp_projection) * 3)
-      ).toFixed(2)
-    ),
-    // Sensibilidad x2 para precipitación y viento
-    very_wet: Number(
-      Math.min(
-        1,
-        precipitation_avg / 5 
-      ).toFixed(2)
-    ),
-    very_windy: Number(
-      Math.min(
-        1,
-        wind_avg / 5 
-      ).toFixed(2)
-    ),
-    // very_uncomfortable combina temp y viento con mayor factor
-    very_uncomfortable: Number(
-      Math.min(
-        1,
-        ((temp_projection - temp_max_avg) * 2 + wind_avg / 4)
-      ).toFixed(2)
-    ),
-  };
+  // Determinar rangos históricos para normalizar
+const tempRange = Math.max(...yearlyData.map(d => d.temp_max)) - Math.min(...yearlyData.map(d => d.temp_max));
+const tempMin = Math.min(...yearlyData.map(d => d.temp_max));
+const tempMax = Math.max(...yearlyData.map(d => d.temp_max));
+
+const very_hot = Number(
+  Math.min(
+    1,
+    Math.max(0, (temp_projection - tempMax) / (tempMax - tempMin) + 0.5)
+  ).toFixed(2)
+);
+
+const very_cold = Number(
+  Math.min(
+    1,
+    Math.max(0, (tempMin - temp_projection) / (tempMax - tempMin) + 0.5)
+  ).toFixed(2)
+);
+
+// Para precipitación, normalizamos respecto al máximo histórico
+const precipMax = Math.max(...precs);
+const very_wet = Number(
+  Math.min(
+    1,
+    Math.max(0, precipitation_avg / precipMax)
+  ).toFixed(2)
+);
+
+// Para viento, normalizamos respecto al máximo histórico
+const windMax = Math.max(...winds);
+const very_windy = Number(
+  Math.min(
+    1,
+    Math.max(0, wind_avg / windMax)
+  ).toFixed(2)
+);
+
+// very_uncomfortable combina temperatura y viento normalizados
+const very_uncomfortable = Number(
+  Math.min(
+    1,
+    Math.max(0, (temp_projection - tempMin) / tempRange + wind_avg / windMax)
+  ).toFixed(2)
+);
+
+const probabilities = {
+  very_hot,
+  very_cold,
+  very_wet,
+  very_windy,
+  very_uncomfortable,
+};
+
 
 
   // --- Encontrar el año histórico más cercano ---
@@ -327,41 +345,59 @@ async function fetchRegionWeatherData(
   const temp_projection = temp_max_avg + slope_per_year * yearsAhead;
   const precip_projection = precipitation_avg;
 
-  const probabilities = {
-    // Sensibilidad x3 para very_hot/cold
-    very_hot: Number(
-      Math.min(
-        1,
-        Math.max(0, (temp_projection - temp_max_avg) * 3)
-      ).toFixed(2)
-    ),
-    very_cold: Number(
-      Math.min(
-        1,
-        Math.max(0, (temp_max_avg - temp_projection) * 3)
-      ).toFixed(2)
-    ),
-    // Sensibilidad x2 para precipitación y viento
-    very_wet: Number(
-      Math.min(
-        1,
-        precipitation_avg / 5 // si antes era /10, ahora /5 → valores mayores
-      ).toFixed(2)
-    ),
-    very_windy: Number(
-      Math.min(
-        1,
-        wind_avg / 5 // igual, más sensible
-      ).toFixed(2)
-    ),
-    // very_uncomfortable combina temp y viento con mayor factor
-    very_uncomfortable: Number(
-      Math.min(
-        1,
-        ((temp_projection - temp_max_avg) * 2 + wind_avg / 4)
-      ).toFixed(2)
-    ),
-  };
+// Determinar rangos históricos para normalizar
+const tempRange = Math.max(...yearlyData.map(d => d.temp_max)) - Math.min(...yearlyData.map(d => d.temp_max));
+const tempMin = Math.min(...yearlyData.map(d => d.temp_max));
+const tempMax = Math.max(...yearlyData.map(d => d.temp_max));
+
+const very_hot = Number(
+  Math.min(
+    1,
+    Math.max(0, (temp_projection - tempMax) / (tempMax - tempMin) + 0.5)
+  ).toFixed(2)
+);
+
+const very_cold = Number(
+  Math.min(
+    1,
+    Math.max(0, (tempMin - temp_projection) / (tempMax - tempMin) + 0.5)
+  ).toFixed(2)
+);
+
+// Para precipitación, normalizamos respecto al máximo histórico
+const precipMax = Math.max(...precsAll.flat());
+const very_wet = Number(
+  Math.min(
+    1,
+    Math.max(0, precipitation_avg / precipMax)
+  ).toFixed(2)
+);
+
+// Para viento, normalizamos respecto al máximo histórico
+const windMax = Math.max(...windAll.flat());
+const very_windy = Number(
+  Math.min(
+    1,
+    Math.max(0, wind_avg / windMax)
+  ).toFixed(2)
+);
+
+// very_uncomfortable combina temperatura y viento normalizados
+const very_uncomfortable = Number(
+  Math.min(
+    1,
+    Math.max(0, (temp_projection - tempMin) / tempRange + wind_avg / windMax)
+  ).toFixed(2)
+);
+
+const probabilities = {
+  very_hot,
+  very_cold,
+  very_wet,
+  very_windy,
+  very_uncomfortable,
+};
+
 
 
   /**
