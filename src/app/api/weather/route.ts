@@ -129,18 +129,22 @@ async function fetchPointWeatherData(
   const tempsAllYears = yearlyData.map(d => d.temp_max);
   const tempMax = Math.max(...tempsAllYears);
   const tempMin = Math.min(...tempsAllYears);
-  const tempRange = tempMax - tempMin;
+  const tempRangeH = tempMax - tempMin;
 
-  // Very hot: cuánto supera la proyección el máximo histórico
+  // Definir los valores mínimo y máximo esperados (igual que en la función de región)
+  const TEMP_MIN_EXPECTED = -5;  // temperatura mínima esperada
+  const TEMP_MAX_EXPECTED = 35;  // temperatura máxima esperada
+  const tempRange = TEMP_MAX_EXPECTED - TEMP_MIN_EXPECTED;
+
+  // Very hot: cuánto supera la proyección el mínimo esperado (igual que en región)
   const very_hot = Number(
-    Math.min(1, Math.max(0, (temp_projection - tempMax) / tempRange + 0.5)).toFixed(2)
+    Math.min(1, Math.max(0, (temp_projection - TEMP_MIN_EXPECTED) / tempRange)).toFixed(2)
   );
 
-  // Very cold: cuánto cae la proyección por debajo del mínimo histórico
+  // Very cold: cuánto cae la proyección por debajo del máximo esperado (igual que en región)
   const very_cold = Number(
-    Math.min(1, Math.max(0, (tempMin - temp_projection) / tempRange + 0.5)).toFixed(2)
+    Math.min(1, Math.max(0, (TEMP_MAX_EXPECTED - temp_projection) / tempRange)).toFixed(2)
   );
-
   // Precipitación normalizada por máximo histórico
   const precipMax = Math.max(...precs);
   const very_wet = Number(
