@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation";
 import { WeatherDataDisplay } from "@/components/weather-data-display"
 import { DataExport } from "@/components/data-export"
 import { ClimateJusticeDashboard } from "@/components/climate-justice-dashboard"
@@ -24,6 +25,7 @@ export function HomePage() {
   const [loading, setLoading] = useState(false)
   const [locationReady, setLocationReady] = useState(false)
   const [locationError, setLocationError] = useState<string | null>(null)
+  const router = useRouter();
 
   // Get user's location on mount - REQUIRED
   useEffect(() => {
@@ -172,7 +174,7 @@ export function HomePage() {
     return (
       <main className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4 px-4">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary"/>
+          <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
           <p className="text-lg text-foreground">Requesting location access...</p>
           <p className="text-sm text-muted-foreground max-w-md">
             Please allow location access to use Climate Forecast
@@ -237,7 +239,7 @@ export function HomePage() {
             <div className="flex items-center gap-2">
               {loading && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin"/>
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   <span>Loading...</span>
                 </div>
               )}
@@ -248,8 +250,17 @@ export function HomePage() {
                 size="sm"
                 className="gap-2"
               >
-                <RefreshCw className="h-4 w-4"/>
+                <RefreshCw className="h-4 w-4" />
                 Refresh
+              </Button>
+
+              <Button
+                onClick={() => router.push("/")} // redirige al home
+                variant="outline"
+                size="sm"
+                className="gap-2"
+              > 
+                Home
               </Button>
             </div>
           </div>
@@ -259,7 +270,7 @@ export function HomePage() {
       {/* Map Section */}
       <div className="border-b border-border">
         <div className="container mx-auto px-4 md:px-6 py-4 md:py-6">
-        
+
           {/* City Search */}
           <div className="mb-4 max-w-md">
             <CitySearch
@@ -321,7 +332,7 @@ export function HomePage() {
         {loading ? (
           <div className="flex items-center justify-center py-12 md:py-20">
             <div className="text-center space-y-3 px-4">
-              <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary"/>
+              <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
               <p className="text-muted-foreground text-base md:text-lg">Fetching weather data...</p>
               <p className="text-xs md:text-sm text-muted-foreground max-w-md">
                 Analyzing climate probabilities for your selection
@@ -350,13 +361,13 @@ export function HomePage() {
                 </TabsTrigger>
               </TabsList>
             </div>
-            
+
             <TabsContent value="overview" className="space-y-6">
-              <WeatherDataDisplay data={weatherData}/>
+              <WeatherDataDisplay data={weatherData} />
             </TabsContent>
-            
+
             <TabsContent value="climate-justice" className="space-y-6">
-              <ClimateJusticeDashboard 
+              <ClimateJusticeDashboard
                 weatherData={weatherData}
                 location={{
                   lat: params.mode === "point" && params.lat ? params.lat : (params.lat_min + params.lat_max) / 2,
@@ -365,9 +376,9 @@ export function HomePage() {
                 }}
               />
             </TabsContent>
-            
+
             <TabsContent value="agriculture" className="space-y-6">
-              <AgriculturalImpact 
+              <AgriculturalImpact
                 weatherData={weatherData}
                 location={{
                   lat: params.mode === "point" && params.lat ? params.lat : (params.lat_min + params.lat_max) / 2,
@@ -376,9 +387,9 @@ export function HomePage() {
                 }}
               />
             </TabsContent>
-            
+
             <TabsContent value="satellite" className="space-y-6">
-              <SatelliteLayersPanel 
+              <SatelliteLayersPanel
                 selectedLayers={satelliteLayers}
                 onLayersChange={setSatelliteLayers}
                 location={{
@@ -392,9 +403,9 @@ export function HomePage() {
                 }}
               />
             </TabsContent>
-            
+
             <TabsContent value="export" className="space-y-6">
-              <PDFReportGenerator 
+              <PDFReportGenerator
                 weatherData={weatherData}
                 location={{
                   lat: params.mode === "point" && params.lat ? params.lat : (params.lat_min + params.lat_max) / 2,
@@ -403,7 +414,7 @@ export function HomePage() {
                 }}
               />
               <div className="pt-6">
-                <DataExport data={weatherData} onImport={handleImportData}/>
+                <DataExport data={weatherData} onImport={handleImportData} />
               </div>
             </TabsContent>
           </Tabs>
